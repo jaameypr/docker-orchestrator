@@ -38,9 +38,51 @@ export {
   recreateContainer,
 } from "./core/container-recreation.js";
 
+// Core – Network Management (Phase 4)
+export {
+  createNetwork,
+  removeNetwork,
+  inspectNetwork,
+  listNetworks,
+  connectContainer,
+  disconnectContainer,
+  pruneNetworks,
+} from "./core/network.js";
+
+// Core – Volume Management (Phase 4)
+export {
+  createVolume,
+  removeVolume,
+  inspectVolume,
+  listVolumes,
+  pruneVolumes,
+  volumeExists,
+} from "./core/volume.js";
+
 // Builders
 export { buildContainerConfig, ContainerConfigSchema } from "./builders/config-builder.js";
 export type { ContainerConfig } from "./builders/config-builder.js";
+
+// Builders – Port Mapper (Phase 4)
+export {
+  parsePortMapping,
+  parsePortMappings,
+  toDockerPortConfig,
+  resolvePortMappings,
+  checkPortAvailable,
+  validatePortAvailability,
+  getAssignedPorts,
+} from "./builders/port-mapper.js";
+
+// Builders – Volume Mapper (Phase 4)
+export {
+  parseMount,
+  parseMounts,
+  validateMounts,
+  toDockerBinds,
+  toDockerMounts,
+  resolveVolumeMounts,
+} from "./builders/volume-mapper.js";
 
 // Errors
 export {
@@ -57,6 +99,16 @@ export {
   PermissionError,
   RecreationFailedError,
   CriticalRecreationError,
+  // Phase 4 errors
+  NetworkNotFoundError,
+  NetworkAlreadyExistsError,
+  ContainerStillConnectedError,
+  InvalidSubnetError,
+  VolumeNotFoundError,
+  VolumeInUseError,
+  VolumeAlreadyExistsError,
+  PortAlreadyInUseError,
+  InvalidMountError,
   mapDockerError,
 } from "./errors/index.js";
 
@@ -152,3 +204,39 @@ export type {
   RollbackStatus,
 } from "./types/recreation.js";
 export { RecreationOptionsSchema } from "./types/recreation.js";
+
+// Types – Network (Phase 4)
+export type {
+  NetworkCreateOptions,
+  ConnectOptions,
+  NetworkInfo,
+  NetworkContainerInfo,
+  NetworkListFilter,
+} from "./types/network.js";
+export { NetworkCreateOptionsSchema, ConnectOptionsSchema } from "./types/network.js";
+
+// Types – Volume (Phase 4)
+export type {
+  VolumeCreateOptions,
+  VolumeInfo,
+  VolumeListFilter,
+  PruneVolumesResult,
+} from "./types/volume.js";
+export { VolumeCreateOptionsSchema } from "./types/volume.js";
+
+// Types – Ports (Phase 4)
+export type {
+  PortMappingInput,
+  ResolvedPortMapping,
+  DockerPortConfig,
+  AssignedPort,
+} from "./types/ports.js";
+export { PortMappingInputSchema } from "./types/ports.js";
+
+// Types – Mounts (Phase 4)
+export type {
+  MountInput,
+  ResolvedMount,
+  DockerMountConfig,
+} from "./types/mounts.js";
+export { MountInputSchema } from "./types/mounts.js";

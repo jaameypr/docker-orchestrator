@@ -158,3 +158,143 @@ export class CriticalRecreationError extends DockerOrchestratorError {
     this.rollbackError = rollbackError;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Network Errors
+// ---------------------------------------------------------------------------
+
+export class NetworkNotFoundError extends DockerOrchestratorError {
+  public readonly networkId: string;
+
+  constructor(networkId: string, cause?: Error) {
+    super(`Network not found: ${networkId}`, "NETWORK_NOT_FOUND", cause);
+    this.name = "NetworkNotFoundError";
+    this.networkId = networkId;
+  }
+}
+
+export class NetworkAlreadyExistsError extends DockerOrchestratorError {
+  public readonly networkName: string;
+
+  constructor(networkName: string, cause?: Error) {
+    super(
+      `Network with name "${networkName}" already exists`,
+      "NETWORK_ALREADY_EXISTS",
+      cause,
+    );
+    this.name = "NetworkAlreadyExistsError";
+    this.networkName = networkName;
+  }
+}
+
+export class ContainerStillConnectedError extends DockerOrchestratorError {
+  public readonly networkId: string;
+  public readonly connectedContainers: string[];
+
+  constructor(networkId: string, connectedContainers: string[], cause?: Error) {
+    super(
+      `Cannot remove network ${networkId}: ${connectedContainers.length} container(s) still connected (${connectedContainers.join(", ")})`,
+      "CONTAINER_STILL_CONNECTED",
+      cause,
+    );
+    this.name = "ContainerStillConnectedError";
+    this.networkId = networkId;
+    this.connectedContainers = connectedContainers;
+  }
+}
+
+export class InvalidSubnetError extends DockerOrchestratorError {
+  public readonly subnet: string;
+  public readonly ip: string;
+
+  constructor(ip: string, subnet: string, cause?: Error) {
+    super(
+      `IP address ${ip} is not within subnet ${subnet}`,
+      "INVALID_SUBNET",
+      cause,
+    );
+    this.name = "InvalidSubnetError";
+    this.subnet = subnet;
+    this.ip = ip;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Volume Errors
+// ---------------------------------------------------------------------------
+
+export class VolumeNotFoundError extends DockerOrchestratorError {
+  public readonly volumeName: string;
+
+  constructor(volumeName: string, cause?: Error) {
+    super(`Volume not found: ${volumeName}`, "VOLUME_NOT_FOUND", cause);
+    this.name = "VolumeNotFoundError";
+    this.volumeName = volumeName;
+  }
+}
+
+export class VolumeInUseError extends DockerOrchestratorError {
+  public readonly volumeName: string;
+
+  constructor(volumeName: string, cause?: Error) {
+    super(
+      `Volume "${volumeName}" is currently in use by one or more containers`,
+      "VOLUME_IN_USE",
+      cause,
+    );
+    this.name = "VolumeInUseError";
+    this.volumeName = volumeName;
+  }
+}
+
+export class VolumeAlreadyExistsError extends DockerOrchestratorError {
+  public readonly volumeName: string;
+
+  constructor(volumeName: string, cause?: Error) {
+    super(
+      `Volume with name "${volumeName}" already exists`,
+      "VOLUME_ALREADY_EXISTS",
+      cause,
+    );
+    this.name = "VolumeAlreadyExistsError";
+    this.volumeName = volumeName;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Port Errors
+// ---------------------------------------------------------------------------
+
+export class PortAlreadyInUseError extends DockerOrchestratorError {
+  public readonly port: number;
+  public readonly suggestedPort: number;
+
+  constructor(port: number, suggestedPort: number, cause?: Error) {
+    super(
+      `Port ${port} is already in use. Try port ${suggestedPort} instead.`,
+      "PORT_ALREADY_IN_USE",
+      cause,
+    );
+    this.name = "PortAlreadyInUseError";
+    this.port = port;
+    this.suggestedPort = suggestedPort;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Mount Errors
+// ---------------------------------------------------------------------------
+
+export class InvalidMountError extends DockerOrchestratorError {
+  public readonly mountSpec: string;
+
+  constructor(mountSpec: string, reason: string, cause?: Error) {
+    super(
+      `Invalid mount specification "${mountSpec}": ${reason}`,
+      "INVALID_MOUNT",
+      cause,
+    );
+    this.name = "InvalidMountError";
+    this.mountSpec = mountSpec;
+  }
+}

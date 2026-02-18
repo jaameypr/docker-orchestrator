@@ -1,5 +1,9 @@
 import { z } from "zod";
 import type Dockerode from "dockerode";
+import { PortMappingInputSchema } from "../types/ports.js";
+import { MountInputSchema } from "../types/mounts.js";
+import { resolvePortMappings } from "./port-mapper.js";
+import { resolveVolumeMounts } from "./volume-mapper.js";
 
 const PortMappingSchema = z.object({
   container: z.number().int().positive(),
@@ -24,6 +28,17 @@ export const ContainerConfigSchema = z.object({
     .optional(),
   restartPolicy: z.enum(["no", "always", "unless-stopped", "on-failure"]).default("no"),
   hostname: z.string().optional(),
+  // Phase 4: New fields
+  networks: z
+    .record(
+      z.object({
+        aliases: z.array(z.string()).optional(),
+        ipv4Address: z.string().optional(),
+      }),
+    )
+    .optional(),
+  portMappings: z.array(PortMappingInputSchema).optional(),
+  mounts: z.array(MountInputSchema).optional(),
 });
 
 export type ContainerConfig = z.infer<typeof ContainerConfigSchema>;
@@ -42,9 +57,9 @@ export function buildContainerConfig(
     ? Object.entries(config.env).map(([k, v]) => `${k}=${v}`)
     : undefined;
 
-  // Build port bindings and exposed ports
-  const exposedPorts: Record<string, object> = {};
-  const portBindings: Record<string, Array<{ HostPort: string }>> = {};
+  // Build port bindings and exposed ports (legacy format)
+  let exposedPorts: Record<string, object> = {};
+  let portBindings: Record<string, Array<{ HostPort: string }>> = {};
 
   if (config.ports) {
     for (const port of config.ports) {
@@ -54,7 +69,14 @@ export function buildContainerConfig(
     }
   }
 
-  // Build volume binds
+  // Phase 4: Port-Mapper integration (new portMappings field)
+  if (config.portMappings) {
+    const resolved = resolvePortMappings(config.portMappings);
+    exposedPorts = { ...exposedPorts, ...resolved.exposedPorts };
+    portBindings = { ...portBindings, ...resolved.portBindings };
+  }
+
+  // Build volume binds (legacy format)
   const binds: string[] = [];
   if (config.volumes) {
     for (const vol of config.volumes) {
@@ -63,6 +85,33 @@ export function buildContainerConfig(
         : `${vol.host}:${vol.container}`;
       binds.push(bind);
     }
+  }
+
+  // Phase 4: Volume-Mapper integration (new mounts field)
+  let dockerMounts: Dockerode.MountConfig | undefined;
+  if (config.mounts) {
+    const resolved = resolveVolumeMounts(config.mounts);
+    binds.push(...resolved.binds);
+    if (resolved.mounts.length > 0) {
+      dockerMounts = resolved.mounts as unknown as Dockerode.MountConfig;
+    }
+  }
+
+  // Phase 4: Network configuration
+  let networkingConfig: Record<string, unknown> | undefined;
+  if (config.networks) {
+    const endpoints: Record<string, unknown> = {};
+    for (const [netName, netOpts] of Object.entries(config.networks)) {
+      const endpointConfig: Record<string, unknown> = {};
+      if (netOpts.ipv4Address) {
+        endpointConfig.IPAMConfig = { IPv4Address: netOpts.ipv4Address };
+      }
+      if (netOpts.aliases) {
+        endpointConfig.Aliases = netOpts.aliases;
+      }
+      endpoints[netName] = endpointConfig;
+    }
+    networkingConfig = { EndpointsConfig: endpoints };
   }
 
   const result: Dockerode.ContainerCreateOptions = {
@@ -74,10 +123,12 @@ export function buildContainerConfig(
     HostConfig: {
       PortBindings: Object.keys(portBindings).length > 0 ? portBindings : undefined,
       Binds: binds.length > 0 ? binds : undefined,
+      Mounts: dockerMounts,
       RestartPolicy: {
         Name: config.restartPolicy,
       },
     },
+    NetworkingConfig: networkingConfig as Dockerode.ContainerCreateOptions["NetworkingConfig"],
   };
 
   if (config.name) {
