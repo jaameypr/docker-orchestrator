@@ -118,7 +118,8 @@ describeDocker("Integration: Attach / Console Operations", () => {
       });
 
       expect(result.output).toContain("test123");
-      expect(result.duration).toBeGreaterThan(0);
+      // Duration may be 0 if the response is very fast (sub-millisecond)
+      expect(result.duration).toBeGreaterThanOrEqual(0);
     });
 
     it("should buffer output", async () => {

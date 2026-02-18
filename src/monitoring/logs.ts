@@ -97,9 +97,9 @@ export async function getContainerLogs(
     dockerOpts.until = toUnixSeconds(opts.until);
   }
 
-  let rawStream: NodeJS.ReadableStream;
+  let rawResult: NodeJS.ReadableStream | Buffer | string;
   try {
-    rawStream = await containerLogs(container, dockerOpts);
+    rawResult = await containerLogs(container, dockerOpts);
   } catch (err) {
     const error = err as { statusCode?: number };
     if (error.statusCode === 404) {
@@ -109,11 +109,18 @@ export async function getContainerLogs(
   }
 
   if (opts.follow) {
-    return createLogStream(docker, containerId, rawStream, opts);
+    return createLogStream(docker, containerId, rawResult as NodeJS.ReadableStream, opts);
   }
 
-  // One-shot mode: collect all log data and parse
-  return collectLogs(rawStream, opts);
+  // One-shot mode: Docker may return a Buffer/string instead of stream
+  // when follow is false (depends on Dockerode version and TTY setting)
+  if (Buffer.isBuffer(rawResult) || typeof rawResult === "string") {
+    const data = Buffer.isBuffer(rawResult) ? rawResult : Buffer.from(rawResult);
+    return parseLogBuffer(data, opts);
+  }
+
+  // Stream response - collect all data and parse
+  return collectLogs(rawResult as NodeJS.ReadableStream, opts);
 }
 
 /**

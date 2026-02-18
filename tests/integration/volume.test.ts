@@ -163,12 +163,12 @@ describeDocker("Integration: Volume Management", () => {
     createdContainers.push(id);
     await startContainer(docker, id);
 
-    // Try to write – should fail
-    const result = await executeCommand(
-      docker,
-      id,
+    // Try to write – should fail (wrap in shell for || operator to work)
+    const result = await executeCommand(docker, id, [
+      "sh",
+      "-c",
       "touch /data/readonly-test 2>&1 || echo WRITE_FAILED",
-    );
+    ]);
     expect(result.stdout).toContain("WRITE_FAILED");
   });
 
@@ -176,8 +176,13 @@ describeDocker("Integration: Volume Management", () => {
     const volName = `${TEST_PREFIX}prune-${Date.now()}`;
     await createVolume(docker, { name: volName });
 
+    // Verify volume exists before pruning
+    expect(await volumeExists(docker, volName)).toBe(true);
+
     const result = await pruneVolumes(docker);
-    expect(result.volumesDeleted).toContain(volName);
     expect(result.spaceReclaimed).toBeGreaterThanOrEqual(0);
+
+    // Verify volume was actually pruned
+    expect(await volumeExists(docker, volName)).toBe(false);
   });
 });
