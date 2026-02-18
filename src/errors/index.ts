@@ -1,42 +1,57 @@
 export {
+  // Types
+  type ErrorCode,
+  // Base
   DockerOrchestratorError,
+  isDockerOrchestratorError,
+  isTransientError,
+  // Connection Errors
   ConnectionError,
+  DockerDaemonNotRunningError,
+  DockerApiVersionError,
+  // Container Errors
   ContainerNotFoundError,
-  ImageNotFoundError,
+  ContainerNotRunningError,
   ContainerAlreadyRunningError,
   ContainerAlreadyStoppedError,
+  ContainerAlreadyExistsError,
+  // Image Errors
+  ImageNotFoundError,
+  ImagePullError,
+  // Resource Errors
+  PortAlreadyInUseError,
+  InsufficientResourcesError,
+  OOMKilledError,
+  VolumeInUseError,
+  // Operation Errors
   CommandFailedError,
   CommandTimeoutError,
-  FileNotFoundError,
-  ContainerNotRunningError,
-  PermissionError,
+  HealthCheckTimeoutError,
+  DeploymentFailedError,
   RecreationFailedError,
   CriticalRecreationError,
-  // Phase 4: Network errors
+  UpdateFailedError,
+  BatchOperationError,
+  TimeoutError,
+  CircuitOpenError,
+  // Config Errors
+  ValidationError,
+  InvalidResourceConfigError,
+  InvalidSecurityConfigError,
+  InvalidMountError,
+  InvalidSubnetError,
+  // Network Errors
   NetworkNotFoundError,
   NetworkAlreadyExistsError,
   ContainerStillConnectedError,
-  InvalidSubnetError,
-  // Phase 4: Volume errors
+  // Volume Errors
   VolumeNotFoundError,
-  VolumeInUseError,
   VolumeAlreadyExistsError,
-  // Phase 4: Port errors
-  PortAlreadyInUseError,
-  // Phase 4: Mount errors
-  InvalidMountError,
-  // Phase 5: Resource & Security errors
-  InsufficientResourcesError,
-  OOMKilledError,
-  InvalidResourceConfigError,
-  InvalidSecurityConfigError,
+  // Other Errors
+  FileNotFoundError,
+  PermissionError,
   SeccompProfileNotFoundError,
-  // Phase 6: Orchestrator errors
-  DeploymentFailedError,
-  HealthCheckTimeoutError,
-  UpdateFailedError,
-  BatchOperationError,
   DependencyResolutionError,
-  ImagePullError,
+  DockerInternalError,
 } from "./base.js";
 export { mapDockerError } from "./mapping.js";

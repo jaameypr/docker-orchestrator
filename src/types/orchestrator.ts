@@ -1,6 +1,11 @@
 import { z } from "zod";
 import type { ConfigWarning } from "./warnings.js";
 import type { ResolvedPortMapping } from "./ports.js";
+import type { RetryPolicies } from "../utils/retry.js";
+import type { CircuitBreakerOptions, CircuitState } from "../utils/circuit-breaker.js";
+import type { TimeoutConfig } from "../utils/timeout.js";
+import type { Logger } from "../utils/logger.js";
+import type { DaemonMonitorOptions, DaemonState } from "../utils/daemon-monitor.js";
 
 // ---------------------------------------------------------------------------
 // Deploy Result
@@ -81,4 +86,25 @@ export interface OrchestratorOptions {
   defaultSecurityProfile?: "hardened" | "standard" | "permissive";
   /** Default labels added to all managed containers */
   defaultLabels?: Record<string, string>;
+  /** Retry policies per operation type */
+  retryPolicy?: Partial<RetryPolicies>;
+  /** Circuit breaker configuration (false to disable) */
+  circuitBreaker?: Partial<CircuitBreakerOptions> | false;
+  /** Timeout configuration per operation type */
+  timeouts?: Partial<TimeoutConfig>;
+  /** Logger instance */
+  logger?: Logger;
+  /** Daemon monitor configuration (false to disable) */
+  daemonMonitor?: boolean | Partial<DaemonMonitorOptions>;
+}
+
+// ---------------------------------------------------------------------------
+// Health Status
+// ---------------------------------------------------------------------------
+
+export interface OrchestratorHealthStatus {
+  daemon: DaemonState;
+  circuit: CircuitState;
+  activeStreams: number;
+  pendingOperations: number;
 }

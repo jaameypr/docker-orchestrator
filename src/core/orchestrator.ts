@@ -15,6 +15,7 @@ import {
   type BatchItemResult,
   type ProgressCallback,
   type OrchestratorOptions,
+  type OrchestratorHealthStatus,
 } from "../types/orchestrator.js";
 import type { ConfigWarning } from "../types/warnings.js";
 import type { ResolvedPortMapping } from "../types/ports.js";
@@ -38,6 +39,13 @@ import {
   ContainerNotFoundError,
 } from "../errors/base.js";
 import type { PullProgressCallback } from "../types/index.js";
+import type { Logger } from "../utils/logger.js";
+import { NoopLogger } from "../utils/logger.js";
+import { CircuitBreaker } from "../utils/circuit-breaker.js";
+import { DaemonMonitor } from "../utils/daemon-monitor.js";
+import { ShutdownManager } from "../utils/shutdown.js";
+import { DEFAULT_TIMEOUTS, type TimeoutConfig } from "../utils/timeout.js";
+import { DEFAULT_RETRY_POLICIES, type RetryPolicies } from "../utils/retry.js";
 
 // ---------------------------------------------------------------------------
 // Orchestrator Labels
@@ -59,9 +67,71 @@ export class Orchestrator {
     { name: string; config: ContainerConfig; deployedAt: string }
   >();
 
+  // Phase 7 components
+  private readonly logger: Logger;
+  private readonly circuitBreaker: CircuitBreaker | null;
+  private readonly daemonMonitor: DaemonMonitor | null;
+  private readonly shutdownManager: ShutdownManager;
+  private readonly timeouts: TimeoutConfig;
+  private readonly retryPolicies: RetryPolicies;
+  private pendingOperations = 0;
+
   constructor(docker: Docker, options?: OrchestratorOptions) {
     this.docker = docker;
     this.options = options ?? {};
+
+    // Logger
+    this.logger = this.options.logger ?? new NoopLogger();
+
+    // Timeouts
+    this.timeouts = { ...DEFAULT_TIMEOUTS, ...this.options.timeouts };
+
+    // Retry policies
+    this.retryPolicies = {
+      ...DEFAULT_RETRY_POLICIES,
+      ...this.options.retryPolicy,
+    };
+
+    // Circuit breaker
+    if (this.options.circuitBreaker === false) {
+      this.circuitBreaker = null;
+    } else {
+      this.circuitBreaker = new CircuitBreaker({
+        ...this.options.circuitBreaker as Record<string, unknown> ?? {},
+        logger: this.logger,
+      } as ConstructorParameters<typeof CircuitBreaker>[0]);
+    }
+
+    // Daemon monitor
+    if (this.options.daemonMonitor === false || this.options.daemonMonitor === undefined) {
+      this.daemonMonitor = null;
+    } else {
+      const monitorOpts =
+        typeof this.options.daemonMonitor === "object"
+          ? this.options.daemonMonitor
+          : {};
+      this.daemonMonitor = new DaemonMonitor(docker, {
+        ...monitorOpts,
+        logger: this.logger,
+      });
+    }
+
+    // Shutdown manager
+    this.shutdownManager = new ShutdownManager({
+      logger: this.logger,
+    });
+
+    if (this.circuitBreaker) {
+      this.shutdownManager.register("circuit-breaker", () => {
+        this.circuitBreaker?.destroy();
+      });
+    }
+
+    if (this.daemonMonitor) {
+      this.shutdownManager.register("daemon-monitor", () => {
+        this.daemonMonitor?.destroy();
+      });
+    }
   }
 
   // -------------------------------------------------------------------------
@@ -630,6 +700,24 @@ export class Orchestrator {
     }
 
     return { synced, orphans };
+  }
+
+  // -------------------------------------------------------------------------
+  // 7.12 Health & Shutdown
+  // -------------------------------------------------------------------------
+
+  health(): OrchestratorHealthStatus {
+    return {
+      daemon: this.daemonMonitor?.getState() ?? "connected",
+      circuit: this.circuitBreaker?.getState() ?? "closed",
+      activeStreams: 0,
+      pendingOperations: this.pendingOperations,
+    };
+  }
+
+  async shutdown(): Promise<void> {
+    this.logger.info("Orchestrator shutdown requested");
+    await this.shutdownManager.shutdown();
   }
 
   // -------------------------------------------------------------------------

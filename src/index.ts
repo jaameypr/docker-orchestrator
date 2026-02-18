@@ -142,42 +142,61 @@ export {
 
 // Errors
 export {
+  // Types
+  type ErrorCode,
+  // Base
   DockerOrchestratorError,
+  isDockerOrchestratorError,
+  isTransientError,
+  // Connection Errors
   ConnectionError,
+  DockerDaemonNotRunningError,
+  DockerApiVersionError,
+  // Container Errors
   ContainerNotFoundError,
-  ImageNotFoundError,
+  ContainerNotRunningError,
   ContainerAlreadyRunningError,
   ContainerAlreadyStoppedError,
+  ContainerAlreadyExistsError,
+  // Image Errors
+  ImageNotFoundError,
+  ImagePullError,
+  // Resource Errors
+  PortAlreadyInUseError,
+  InsufficientResourcesError,
+  OOMKilledError,
+  VolumeInUseError,
+  // Operation Errors
   CommandFailedError,
   CommandTimeoutError,
-  FileNotFoundError,
-  ContainerNotRunningError,
-  PermissionError,
+  HealthCheckTimeoutError,
+  DeploymentFailedError,
   RecreationFailedError,
   CriticalRecreationError,
-  // Phase 4 errors
+  UpdateFailedError,
+  BatchOperationError,
+  TimeoutError,
+  CircuitOpenError,
+  // Config Errors
+  ValidationError,
+  InvalidResourceConfigError,
+  InvalidSecurityConfigError,
+  InvalidMountError,
+  InvalidSubnetError,
+  // Network Errors
   NetworkNotFoundError,
   NetworkAlreadyExistsError,
   ContainerStillConnectedError,
-  InvalidSubnetError,
+  // Volume Errors
   VolumeNotFoundError,
-  VolumeInUseError,
   VolumeAlreadyExistsError,
-  PortAlreadyInUseError,
-  InvalidMountError,
-  // Phase 5 errors
-  InsufficientResourcesError,
-  OOMKilledError,
-  InvalidResourceConfigError,
-  InvalidSecurityConfigError,
+  // Other Errors
+  FileNotFoundError,
+  PermissionError,
   SeccompProfileNotFoundError,
-  // Phase 6 errors
-  DeploymentFailedError,
-  HealthCheckTimeoutError,
-  UpdateFailedError,
-  BatchOperationError,
   DependencyResolutionError,
-  ImagePullError,
+  DockerInternalError,
+  // Mapping
   mapDockerError,
 } from "./errors/index.js";
 
@@ -207,6 +226,51 @@ export {
   formatBytes,
   StreamType,
 } from "./utils/stream-parser.js";
+
+// Utils – Retry (Phase 7)
+export { retry, calculateDelay, DEFAULT_RETRY_POLICIES } from "./utils/retry.js";
+export type { RetryOptions, RetryPolicy, RetryPolicies } from "./utils/retry.js";
+
+// Utils – Circuit Breaker (Phase 7)
+export { CircuitBreaker } from "./utils/circuit-breaker.js";
+export type {
+  CircuitState,
+  CircuitBreakerOptions,
+  CircuitBreakerEvents,
+} from "./utils/circuit-breaker.js";
+
+// Utils – Timeout (Phase 7)
+export { withTimeout, DEFAULT_TIMEOUTS } from "./utils/timeout.js";
+export type { TimeoutConfig } from "./utils/timeout.js";
+
+// Utils – Logger (Phase 7)
+export {
+  ConsoleLogger,
+  NoopLogger,
+  createLogger,
+  redactSensitiveData,
+} from "./utils/logger.js";
+export type { Logger, LogLevel, LogContext, ConsoleLoggerOptions } from "./utils/logger.js";
+
+// Utils – Daemon Monitor (Phase 7)
+export { DaemonMonitor } from "./utils/daemon-monitor.js";
+export type {
+  DaemonState,
+  DaemonMonitorOptions,
+  DaemonMonitorEvents,
+} from "./utils/daemon-monitor.js";
+
+// Utils – Resilient Stream (Phase 7)
+export { ResilientStream } from "./utils/resilient-stream.js";
+export type {
+  ResilientStreamOptions,
+  StreamHealthMetrics,
+  ResilientStreamEvents,
+} from "./utils/resilient-stream.js";
+
+// Utils – Shutdown (Phase 7)
+export { ShutdownManager } from "./utils/shutdown.js";
+export type { ShutdownOptions, CleanupCallback } from "./utils/shutdown.js";
 
 // Types – Core
 export type {
@@ -374,7 +438,7 @@ export {
   ExecCheckSchema,
 } from "./types/health-check.js";
 
-// Types – Orchestrator (Phase 6)
+// Types – Orchestrator (Phase 6/7)
 export type {
   DeployResult,
   ConfigDiff,
@@ -384,6 +448,7 @@ export type {
   BatchResult,
   ProgressCallback,
   OrchestratorOptions,
+  OrchestratorHealthStatus,
 } from "./types/orchestrator.js";
 export { DestroyOptionsSchema } from "./types/orchestrator.js";
 
