@@ -18,6 +18,9 @@ A TypeScript-first Docker orchestration library for programmatic container lifec
 - **Container-Metriken** — CPU, Memory, Network I/O, Block I/O with continuous streaming
 - **Docker-Event-System** — Subscribe to typed events with filtering and auto-reconnect
 - **Command-Execution** — Run commands in containers: simple exec, interactive TTY, script execution
+- **Attach/STDIN-Streaming** — Low-level container attach with stdin/stdout/stderr, fire-and-forget commands
+- **Persistent Console** — Interactive container console with reconnect, output buffering, sendAndWait, and command queue
+- **Preset-System** — Reusable container configurations with merge logic, graceful stop hooks, and ready-check integration
 - **Bidirektionaler Datei-Transfer** — Copy files and buffers between host and container
 - **Netzwerk-Management** — Custom bridge/overlay/macvlan networks, DNS aliases, fixed IPs
 - **Volume-Management** — Named volumes, bind mounts, tmpfs with automatic creation
@@ -1336,6 +1339,308 @@ setInterval(runPeriodicJob, 60 * 60 * 1000);
 
 ---
 
+### 6.15 Attach/STDIN & Console
+
+#### Container mit interaktivem STDIN deployen
+
+```typescript
+const result = await orch.deploy({
+  image: "alpine",
+  name: "interactive-shell",
+  cmd: ["cat"],
+  interactive: true,  // Aktiviert OpenStdin + AttachStdin
+});
+
+// Console ist automatisch verfügbar für interaktive Container
+const cons = result.console;
+```
+
+#### Low-Level Attach an Container
+
+```typescript
+import { attachContainer } from "@pruefertit/docker-orchestrator";
+
+const { stream, demuxed, tty } = await attachContainer(docker, containerId);
+
+// Daten senden
+stream.write("hello\n");
+
+// Output empfangen (non-TTY: demuxed stdout/stderr)
+demuxed!.stdout.on("data", (chunk: Buffer) => {
+  console.log("stdout:", chunk.toString());
+});
+
+demuxed!.stderr.on("data", (chunk: Buffer) => {
+  console.error("stderr:", chunk.toString());
+});
+
+// Stream schließen
+stream.end();
+```
+
+#### Fire-and-Forget-Command senden
+
+```typescript
+import { sendCommand, sendCommands } from "@pruefertit/docker-orchestrator";
+
+// Einzelnen Command senden (kein Output zurück)
+await sendCommand(docker, containerId, "start-process");
+
+// Mehrere Commands nacheinander senden
+await sendCommands(docker, containerId, [
+  "config set maxmemory 256mb",
+  "config set maxmemory-policy allkeys-lru",
+  "save",
+], 100); // 100ms Pause zwischen Commands
+```
+
+#### Auch über den Orchestrator
+
+```typescript
+// Einzelner Command
+await orch.attach.send(containerId, "reload-config");
+
+// Mehrere Commands
+await orch.attach.sendMany(containerId, ["cmd1", "cmd2"]);
+```
+
+#### Persistent Console erstellen
+
+```typescript
+import { createConsole } from "@pruefertit/docker-orchestrator";
+
+const console = await createConsole(docker, containerId, {
+  reconnect: true,           // Auto-Reconnect bei Verbindungsverlust
+  reconnectMaxRetries: 10,   // Max. 10 Reconnect-Versuche
+  outputBufferSize: 1000,    // Letzte 1000 Zeilen buffern
+  queueCommands: false,      // Commands queuen wenn disconnected
+});
+
+// Oder über den Orchestrator
+const console2 = await orch.attach.console(containerId);
+```
+
+#### Command senden und auf Antwort warten
+
+```typescript
+const result = await console.sendAndWait("status", {
+  matchOutput: "Server is running",  // Warten bis dieser Text erscheint
+  timeout: 5000,                     // Max. 5 Sekunden warten
+});
+
+console.log(`Output: ${result.output}`);
+console.log(`Dauer: ${result.duration}ms`);
+```
+
+#### Output-Buffer und Events
+
+```typescript
+// Alle Events abhören
+console.on("output", (line) => {
+  console.log(`[${line.stream}] ${line.message}`);
+});
+
+console.on("connected", () => console.log("Verbunden"));
+console.on("disconnected", () => console.log("Getrennt"));
+console.on("reconnecting", (attempt) => console.log(`Reconnect #${attempt}`));
+
+// Buffer abrufen
+const buffer = console.getBuffer();
+for (const line of buffer) {
+  console.log(`[${line.timestamp.toISOString()}] ${line.message}`);
+}
+
+// Buffer leeren
+console.clearBuffer();
+
+// Uptime abfragen
+console.log(`Verbunden seit ${console.uptime}ms`);
+
+// Disconnect
+console.disconnect();
+```
+
+#### TTY-Modus aktivieren
+
+```typescript
+await orch.deploy({
+  image: "alpine",
+  name: "tty-container",
+  cmd: ["/bin/sh"],
+  interactive: true,
+  tty: true,  // Aktiviert TTY (Pseudo-Terminal)
+});
+```
+
+---
+
+### 6.16 Preset-System
+
+#### Preset definieren und registrieren
+
+```typescript
+import { definePreset } from "@pruefertit/docker-orchestrator";
+
+const minecraftPreset = definePreset({
+  name: "minecraft-server",
+  config: {
+    image: "itzg/minecraft-server",
+    env: {
+      EULA: "TRUE",
+      TYPE: "PAPER",
+      MEMORY: "2G",
+    },
+    portMappings: ["25565:25565"],
+    mounts: ["mc-data:/data"],
+    resources: { memory: { limit: "3g" } },
+  },
+  gracefulStop: {
+    command: "stop",         // Command für sauberes Herunterfahren
+    waitForExit: true,       // Warten bis Container beendet ist
+    timeout: 30000,          // Max. 30 Sekunden warten
+  },
+  readyCheck: {
+    logMatch: /Done.*For help/,  // RegExp-Match auf Log-Output
+    timeout: 120000,             // Max. 2 Minuten auf Ready warten
+  },
+  metadata: {
+    description: "Minecraft Paper Server",
+    version: "1.0.0",
+  },
+});
+
+// Beim Orchestrator registrieren
+orch.presets.register(minecraftPreset);
+```
+
+#### Mehrere Presets registrieren
+
+```typescript
+orch.presets.registerMany([
+  definePreset({ name: "redis", config: { image: "redis:alpine", cmd: ["redis-server"] } }),
+  definePreset({ name: "postgres", config: { image: "postgres:16-alpine", env: { POSTGRES_PASSWORD: "secret" } } }),
+]);
+```
+
+#### Container aus Preset deployen
+
+```typescript
+const result = await orch.deploy({
+  image: "itzg/minecraft-server",
+  preset: "minecraft-server",
+  name: "mc-survival",
+  env: { DIFFICULTY: "hard", MODE: "survival" },  // Wird mit Preset-Env gemerged
+});
+
+// Preset-Env + User-Env werden zusammengeführt:
+// EULA=TRUE, TYPE=PAPER, MEMORY=2G (aus Preset)
+// DIFFICULTY=hard, MODE=survival (User-Override)
+```
+
+#### Merge-Logik für Preset + User-Config
+
+```typescript
+// Preset definiert Basis-Config
+const preset = definePreset({
+  name: "web-app",
+  config: {
+    image: "node:20-alpine",
+    env: { PORT: "3000", NODE_ENV: "production" },
+    portMappings: ["3000:3000"],
+    mounts: ["app-logs:/var/log"],
+    labels: { "app.type": "web" },
+  },
+});
+
+orch.presets.register(preset);
+
+// User-Deploy merged intelligent:
+await orch.deploy({
+  image: "node:20-alpine",
+  preset: "web-app",
+  env: { NODE_ENV: "staging", DEBUG: "true" },      // Key-basiert: NODE_ENV wird überschrieben, DEBUG hinzugefügt
+  portMappings: ["8080:3000"],                       // User-Ports überschreiben Preset-Ports
+  mounts: ["app-data:/data"],                        // Additiv: beide Mounts aktiv
+  labels: { "app.version": "2.0" },                  // Key-basiert: app.type bleibt, app.version wird hinzugefügt
+});
+```
+
+#### Graceful Stop bei Destroy
+
+```typescript
+// Beim Destroy wird automatisch der gracefulStop-Command gesendet
+await orch.destroy(result.containerId, { timeout: 60 });
+// → Sendet "stop" an den Minecraft-Server
+// → Wartet bis Container sauber beendet
+// → Fallback auf Force-Stop nach Timeout
+```
+
+#### Ready-Check bei Deploy
+
+```typescript
+// Container wird erst als "running" gemeldet wenn Ready-Check bestanden
+const result = await orch.deploy({
+  image: "itzg/minecraft-server",
+  preset: "minecraft-server",
+  name: "mc-creative",
+});
+
+// result.status === "running" erst wenn "Done.*For help" im Log erscheint
+```
+
+#### Presets verwalten
+
+```typescript
+// Alle registrierten Presets auflisten
+const names = orch.presets.list();  // ["minecraft-server", "redis", "postgres"]
+
+// Preset abrufen
+const preset = orch.presets.get("minecraft-server");
+console.log(preset.config.image);  // "itzg/minecraft-server"
+
+// Preset existiert?
+orch.presets.has("minecraft-server");  // true
+
+// Preset entfernen
+orch.presets.remove("minecraft-server");
+
+// Alle Presets entfernen
+orch.presets.clear();
+```
+
+#### Presets serialisieren und laden (JSON)
+
+```typescript
+import { serializePreset, deserializePreset } from "@pruefertit/docker-orchestrator";
+
+// Preset zu JSON serialisieren (inkl. RegExp-Support)
+const json = serializePreset(minecraftPreset);
+// RegExp wird als "__REGEXP__Done.*For help__FLAGS__" gespeichert
+
+// Preset aus JSON laden
+const restored = deserializePreset(json);
+orch.presets.register(restored);
+```
+
+#### Preset überschreiben
+
+```typescript
+// Standardmäßig wirft register() einen Fehler bei Duplikaten
+try {
+  orch.presets.register(definePreset({ name: "redis", config: { image: "redis:7" } }));
+} catch (err) {
+  // PresetAlreadyExistsError
+}
+
+// Mit overwrite-Option erlaubt
+orch.presets.register(
+  definePreset({ name: "redis", config: { image: "redis:7" } }),
+  { overwrite: true },
+);
+```
+
+---
+
 ## API-Kurzreferenz
 
 ### Orchestrator
@@ -1353,6 +1658,10 @@ setInterval(runPeriodicJob, 60 * 60 * 1000);
 | `orch.syncState()` | State mit Docker synchronisieren | `Promise<{ synced: number, orphans: string[] }>` |
 | `orch.health()` | Health-Status abfragen | `OrchestratorHealthStatus` |
 | `orch.shutdown()` | Graceful Shutdown | `Promise<void>` |
+| `orch.presets` | Zugriff auf PresetRegistry | `PresetRegistry` |
+| `orch.attach.send(id, cmd)` | Fire-and-Forget-Command senden | `Promise<void>` |
+| `orch.attach.sendMany(id, cmds, delay?)` | Mehrere Commands senden | `Promise<void>` |
+| `orch.attach.console(id, options?)` | Persistent Console erstellen | `Promise<ContainerConsole>` |
 
 ### Client & Container
 
@@ -1434,6 +1743,39 @@ setInterval(runPeriodicJob, 60 * 60 * 1000);
 | `destroyStack(docker, stackName)` | Stack zerstören | `Promise<void>` |
 | `resolveDependencyOrder(containers)` | Abhängigkeiten auflösen | `string[]` |
 
+### Attach & Console
+
+| Methode / Klasse | Beschreibung | Return-Typ |
+|---|---|---|
+| `attachContainer(docker, id, options?)` | Low-Level-Attach an Container | `Promise<AttachResult>` |
+| `sendCommand(docker, id, command, timeout?)` | Einzelnen Command senden | `Promise<void>` |
+| `sendCommands(docker, id, commands, delay?, timeout?)` | Mehrere Commands senden | `Promise<void>` |
+| `createConsole(docker, id, options?)` | Persistent Console erstellen | `Promise<ContainerConsole>` |
+| `ContainerConsole` | Interaktive Container-Console | Klasse |
+| `console.connect()` | Console verbinden | `Promise<void>` |
+| `console.disconnect()` | Console trennen | `void` |
+| `console.send(command)` | Command senden | `void` |
+| `console.sendAndWait(command, options?)` | Command senden und auf Antwort warten | `Promise<SendAndWaitResult>` |
+| `console.getBuffer()` | Output-Buffer abrufen | `ConsoleOutputLine[]` |
+| `console.clearBuffer()` | Output-Buffer leeren | `void` |
+
+### Presets
+
+| Methode / Klasse | Beschreibung | Return-Typ |
+|---|---|---|
+| `definePreset(input)` | Preset mit Validierung definieren | `ContainerPreset` |
+| `serializePreset(preset)` | Preset zu JSON serialisieren | `string` |
+| `deserializePreset(json)` | Preset aus JSON laden | `ContainerPreset` |
+| `mergePresetConfig(presetConfig, userOverrides)` | Preset- und User-Config mergen | `Partial<ContainerConfig>` |
+| `PresetRegistry` | Registry für Container-Presets | Klasse |
+| `registry.register(preset, options?)` | Preset registrieren | `void` |
+| `registry.registerMany(presets, options?)` | Mehrere Presets registrieren | `void` |
+| `registry.get(name)` | Preset abrufen | `ContainerPreset` |
+| `registry.has(name)` | Prüfen ob Preset existiert | `boolean` |
+| `registry.list()` | Alle Preset-Namen auflisten | `string[]` |
+| `registry.remove(name)` | Preset entfernen | `boolean` |
+| `registry.clear()` | Alle Presets entfernen | `void` |
+
 ### Config & Validation
 
 | Methode | Beschreibung | Return-Typ |
@@ -1498,6 +1840,11 @@ interface ContainerConfig {
     | "hardened"
     | "standard"
     | "permissive";
+
+  // === Interactive / TTY ===
+  interactive?: boolean;             // OpenStdin + AttachStdin aktivieren (default: false)
+  tty?: boolean;                     // Pseudo-Terminal aktivieren (default: false)
+  preset?: string;                   // Name eines registrierten Presets
 
   // === Lifecycle ===
   restartPolicy?:                    // Neustart-Policy
@@ -1603,6 +1950,16 @@ Alle Fehler erben von `DockerOrchestratorError` und enthalten `code`, `cause`, `
 | **Volume** | | |
 | `VolumeNotFoundError` | `VOLUME_NOT_FOUND` | Volume nicht gefunden |
 | `VolumeAlreadyExistsError` | `VOLUME_ALREADY_EXISTS` | Volume existiert bereits |
+| **Attach / Console** | | |
+| `StdinNotAvailableError` | `STDIN_NOT_AVAILABLE` | Container hat OpenStdin nicht aktiviert |
+| `ConsoleDisconnectedError` | `CONSOLE_DISCONNECTED` | Console ist nicht verbunden |
+| `ConsoleCommandTimeoutError` | `CONSOLE_COMMAND_TIMEOUT` | sendAndWait-Timeout überschritten |
+| `GracefulStopTimeoutError` | `GRACEFUL_STOP_TIMEOUT` | Graceful-Stop-Timeout überschritten |
+| **Preset** | | |
+| `PresetNotFoundError` | `PRESET_NOT_FOUND` | Preset nicht in Registry gefunden |
+| `PresetAlreadyExistsError` | `PRESET_ALREADY_EXISTS` | Preset existiert bereits (ohne overwrite) |
+| `PresetValidationError` | `PRESET_VALIDATION_ERROR` | Preset-Validierung fehlgeschlagen |
+| `ReadyCheckTimeoutError` | `READY_CHECK_TIMEOUT` | Ready-Check-Timeout überschritten |
 | **Other** | | |
 | `FileNotFoundError` | `FILE_NOT_FOUND` | Datei nicht gefunden |
 | `PermissionError` | `PERMISSION_DENIED` | Zugriff verweigert |

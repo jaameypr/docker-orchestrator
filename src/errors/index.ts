@@ -53,5 +53,15 @@ export {
   SeccompProfileNotFoundError,
   DependencyResolutionError,
   DockerInternalError,
+  // Attach / Console Errors
+  StdinNotAvailableError,
+  ConsoleDisconnectedError,
+  ConsoleCommandTimeoutError,
+  GracefulStopTimeoutError,
+  // Preset Errors
+  PresetNotFoundError,
+  PresetAlreadyExistsError,
+  PresetValidationError,
+  ReadyCheckTimeoutError,
 } from "./base.js";
 export { mapDockerError } from "./mapping.js";

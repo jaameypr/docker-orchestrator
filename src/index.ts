@@ -101,6 +101,20 @@ export {
 // Core – Orchestrator (Phase 6)
 export { Orchestrator } from "./core/orchestrator.js";
 
+// Core – Attach / Console
+export { attachContainer, sendCommand, sendCommands } from "./core/attach.js";
+export type { AttachResult } from "./core/attach.js";
+export { ContainerConsole, createConsole } from "./core/console.js";
+
+// Core – Presets
+export {
+  definePreset,
+  serializePreset,
+  deserializePreset,
+  mergePresetConfig,
+  PresetRegistry,
+} from "./core/presets.js";
+
 // Core – Stack (Phase 6)
 export {
   resolveDependencyOrder,
@@ -196,6 +210,16 @@ export {
   SeccompProfileNotFoundError,
   DependencyResolutionError,
   DockerInternalError,
+  // Attach / Console Errors
+  StdinNotAvailableError,
+  ConsoleDisconnectedError,
+  ConsoleCommandTimeoutError,
+  GracefulStopTimeoutError,
+  // Preset Errors
+  PresetNotFoundError,
+  PresetAlreadyExistsError,
+  PresetValidationError,
+  ReadyCheckTimeoutError,
   // Mapping
   mapDockerError,
 } from "./errors/index.js";
@@ -467,6 +491,32 @@ export {
   StackVolumeSchema,
   StackConfigSchema,
 } from "./types/stack.js";
+
+// Types – Attach / Console
+export type {
+  AttachOptions,
+  ConsoleOptions,
+  ConsoleOutputLine,
+  ConsoleStatus,
+  SendAndWaitOptions,
+  SendAndWaitResult,
+  CommandQueueOptions,
+  ContainerConsoleEvents,
+} from "./types/attach.js";
+export { AttachOptionsSchema, ConsoleOptionsSchema, SendAndWaitOptionsSchema } from "./types/attach.js";
+
+// Types – Presets
+export type {
+  ContainerPreset,
+  GracefulStopConfig,
+  ReadyCheckConfig,
+  PresetRegistryOptions,
+} from "./types/presets.js";
+export {
+  ContainerPresetSchema,
+  GracefulStopConfigSchema,
+  ReadyCheckConfigSchema,
+} from "./types/presets.js";
 
 // Factory function (Phase 6)
 export { createOrchestrator } from "./core/orchestrator.js";

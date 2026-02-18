@@ -54,7 +54,17 @@ export type ErrorCode =
   | "NOT_MODIFIED"
   | "CONFLICT"
   | "DOCKER_INTERNAL_ERROR"
-  | "UNKNOWN";
+  | "UNKNOWN"
+  // Attach / Console
+  | "STDIN_NOT_AVAILABLE"
+  | "CONSOLE_DISCONNECTED"
+  | "CONSOLE_COMMAND_TIMEOUT"
+  | "GRACEFUL_STOP_TIMEOUT"
+  // Preset
+  | "PRESET_NOT_FOUND"
+  | "PRESET_ALREADY_EXISTS"
+  | "PRESET_VALIDATION_ERROR"
+  | "READY_CHECK_TIMEOUT";
 
 // ---------------------------------------------------------------------------
 // Base Error
@@ -733,5 +743,131 @@ export class DockerInternalError extends DockerOrchestratorError {
   constructor(message: string, cause?: Error) {
     super(message, "DOCKER_INTERNAL_ERROR", cause);
     this.name = "DockerInternalError";
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Attach / Console Errors
+// ---------------------------------------------------------------------------
+
+export class StdinNotAvailableError extends DockerOrchestratorError {
+  public readonly containerId: string;
+
+  constructor(containerId: string, cause?: Error) {
+    super(
+      `Container ${containerId} was not created with OpenStdin: true. Cannot attach stdin.`,
+      "STDIN_NOT_AVAILABLE",
+      cause,
+    );
+    this.name = "StdinNotAvailableError";
+    this.containerId = containerId;
+  }
+}
+
+export class ConsoleDisconnectedError extends DockerOrchestratorError {
+  public readonly containerId: string;
+
+  constructor(containerId: string, cause?: Error) {
+    super(
+      `Console for container ${containerId} is disconnected and command queue is disabled`,
+      "CONSOLE_DISCONNECTED",
+      cause,
+    );
+    this.name = "ConsoleDisconnectedError";
+    this.containerId = containerId;
+  }
+}
+
+export class ConsoleCommandTimeoutError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly timeoutMs: number;
+
+  constructor(containerId: string, timeoutMs: number, cause?: Error) {
+    super(
+      `Console command timed out after ${timeoutMs}ms for container ${containerId}`,
+      "CONSOLE_COMMAND_TIMEOUT",
+      cause,
+    );
+    this.name = "ConsoleCommandTimeoutError";
+    this.containerId = containerId;
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+export class GracefulStopTimeoutError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly timeoutMs: number;
+
+  constructor(containerId: string, timeoutMs: number, cause?: Error) {
+    super(
+      `Graceful stop timed out after ${timeoutMs}ms for container ${containerId}`,
+      "GRACEFUL_STOP_TIMEOUT",
+      cause,
+    );
+    this.name = "GracefulStopTimeoutError";
+    this.containerId = containerId;
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Preset Errors
+// ---------------------------------------------------------------------------
+
+export class PresetNotFoundError extends DockerOrchestratorError {
+  public readonly presetName: string;
+
+  constructor(presetName: string, cause?: Error) {
+    super(
+      `Preset not found: "${presetName}"`,
+      "PRESET_NOT_FOUND",
+      cause,
+    );
+    this.name = "PresetNotFoundError";
+    this.presetName = presetName;
+  }
+}
+
+export class PresetAlreadyExistsError extends DockerOrchestratorError {
+  public readonly presetName: string;
+
+  constructor(presetName: string, cause?: Error) {
+    super(
+      `Preset "${presetName}" already exists. Use overwrite: true to replace it.`,
+      "PRESET_ALREADY_EXISTS",
+      cause,
+    );
+    this.name = "PresetAlreadyExistsError";
+    this.presetName = presetName;
+  }
+}
+
+export class PresetValidationError extends DockerOrchestratorError {
+  public readonly details: string;
+
+  constructor(details: string, cause?: Error) {
+    super(
+      `Invalid preset: ${details}`,
+      "PRESET_VALIDATION_ERROR",
+      cause,
+    );
+    this.name = "PresetValidationError";
+    this.details = details;
+  }
+}
+
+export class ReadyCheckTimeoutError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly timeoutMs: number;
+
+  constructor(containerId: string, timeoutMs: number, cause?: Error) {
+    super(
+      `Ready check timed out after ${timeoutMs}ms for container ${containerId}`,
+      "READY_CHECK_TIMEOUT",
+      cause,
+    );
+    this.name = "ReadyCheckTimeoutError";
+    this.containerId = containerId;
+    this.timeoutMs = timeoutMs;
   }
 }

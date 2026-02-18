@@ -37,6 +37,8 @@ import {
   UpdateFailedError,
   ImagePullError,
   ContainerNotFoundError,
+  GracefulStopTimeoutError,
+  ReadyCheckTimeoutError,
 } from "../errors/base.js";
 import type { PullProgressCallback } from "../types/index.js";
 import type { Logger } from "../utils/logger.js";
@@ -46,6 +48,11 @@ import { DaemonMonitor } from "../utils/daemon-monitor.js";
 import { ShutdownManager } from "../utils/shutdown.js";
 import { DEFAULT_TIMEOUTS, type TimeoutConfig } from "../utils/timeout.js";
 import { DEFAULT_RETRY_POLICIES, type RetryPolicies } from "../utils/retry.js";
+import { sendCommand, sendCommands } from "./attach.js";
+import { ContainerConsole, createConsole } from "./console.js";
+import { PresetRegistry, mergePresetConfig, PRESET_LABEL } from "./presets.js";
+import type { ConsoleOptions } from "../types/attach.js";
+import { streamLogs } from "../monitoring/logs.js";
 
 // ---------------------------------------------------------------------------
 // Orchestrator Labels
@@ -75,6 +82,19 @@ export class Orchestrator {
   private readonly timeouts: TimeoutConfig;
   private readonly retryPolicies: RetryPolicies;
   private pendingOperations = 0;
+
+  // Attach / Console / Presets
+  private readonly _presets: PresetRegistry;
+  private readonly activeConsoles = new Map<string, ContainerConsole>();
+
+  /**
+   * Attach namespace: send commands and open persistent consoles.
+   */
+  public readonly attach: {
+    send: (containerId: string, command: string, timeout?: number) => Promise<void>;
+    sendMany: (containerId: string, commands: string[], delayMs?: number, timeout?: number) => Promise<void>;
+    console: (containerId: string, options?: Partial<ConsoleOptions>) => Promise<ContainerConsole>;
+  };
 
   constructor(docker: Docker, options?: OrchestratorOptions) {
     this.docker = docker;
@@ -132,6 +152,35 @@ export class Orchestrator {
         this.daemonMonitor?.destroy();
       });
     }
+
+    // Preset registry
+    this._presets = new PresetRegistry();
+
+    // Shutdown: close all active consoles
+    this.shutdownManager.register("consoles", () => {
+      for (const [, console] of this.activeConsoles) {
+        console.disconnect();
+      }
+      this.activeConsoles.clear();
+    });
+
+    // Attach namespace
+    this.attach = {
+      send: (containerId: string, command: string, timeout?: number) =>
+        sendCommand(this.docker, containerId, command, timeout),
+      sendMany: (containerId: string, commands: string[], delayMs?: number, timeout?: number) =>
+        sendCommands(this.docker, containerId, commands, delayMs, timeout),
+      console: async (containerId: string, options?: Partial<ConsoleOptions>) => {
+        // Return existing console if already open
+        const existing = this.activeConsoles.get(containerId);
+        if (existing && existing.status === "connected") {
+          return existing;
+        }
+        const con = await createConsole(this.docker, containerId, options);
+        this.activeConsoles.set(containerId, con);
+        return con;
+      },
+    };
   }
 
   // -------------------------------------------------------------------------
@@ -154,9 +203,23 @@ export class Orchestrator {
     userConfig: ContainerConfig,
     onProgress?: ProgressCallback,
   ): Promise<DeployResult> {
+    // Step 0: Resolve preset if specified
+    let resolvedConfig = userConfig;
+    let presetName: string | undefined;
+    if (userConfig.preset && this._presets.has(userConfig.preset)) {
+      presetName = userConfig.preset;
+      onProgress?.("preset", `Loading preset "${presetName}"`);
+      const preset = this._presets.get(presetName);
+      const { preset: _p, ...userOverrides } = userConfig;
+      resolvedConfig = mergePresetConfig(
+        preset.config as Partial<ContainerConfig>,
+        userOverrides,
+      ) as ContainerConfig;
+    }
+
     // Step 1: Validate config
     onProgress?.("validate", "Validating configuration");
-    const config = ContainerConfigSchema.parse(userConfig);
+    const config = ContainerConfigSchema.parse(resolvedConfig);
 
     // Apply orchestrator defaults
     const finalConfig = this.applyDefaults(config);
@@ -172,6 +235,11 @@ export class Orchestrator {
       [MANAGED_LABEL]: "true",
       [DEPLOYED_AT_LABEL]: deployedAt,
     };
+
+    // Store preset label if using a preset
+    if (presetName) {
+      dockerConfig.Labels[PRESET_LABEL] = presetName;
+    }
 
     // Step 2: Ensure image exists
     onProgress?.("image", `Checking image ${dockerConfig.Image}`);
@@ -317,6 +385,16 @@ export class Orchestrator {
       status = "healthy";
     }
 
+    // Step 9: Preset ready-check (if preset defines one)
+    if (presetName && this._presets.has(presetName)) {
+      const preset = this._presets.get(presetName);
+      if (preset.readyCheck) {
+        onProgress?.("readycheck", "Waiting for ready check");
+        await this.performReadyCheck(containerId, preset.readyCheck, onProgress);
+        status = "healthy";
+      }
+    }
+
     // Resolve port mappings
     const ports = await this.getResolvedPorts(containerId);
 
@@ -328,12 +406,23 @@ export class Orchestrator {
       deployedAt,
     });
 
+    // Auto-create console if interactive mode
+    let console: ContainerConsole | undefined;
+    if (finalConfig.interactive) {
+      try {
+        console = await this.attach.console(containerId);
+      } catch {
+        // Non-fatal: console creation failure should not fail deploy
+      }
+    }
+
     return {
       containerId,
       name: containerName,
       status,
       ports,
       warnings,
+      console,
     };
   }
 
@@ -512,8 +601,16 @@ export class Orchestrator {
   ): Promise<void> {
     const opts = DestroyOptionsSchema.parse(options ?? {});
 
-    // Inspect to get config for volume/network cleanup
+    // Close active console for this container
+    const activeConsole = this.activeConsoles.get(containerId);
+    if (activeConsole) {
+      activeConsole.disconnect();
+      this.activeConsoles.delete(containerId);
+    }
+
+    // Inspect to get config for volume/network cleanup and preset label
     let volumeNames: string[] = [];
+    let containerPresetName: string | undefined;
     try {
       const data = (await this.docker
         .getContainer(containerId)
@@ -527,6 +624,10 @@ export class Orchestrator {
       volumeNames = mounts
         .filter((m) => m.Type === "volume" && m.Name)
         .map((m) => m.Name!);
+
+      // Check for preset label
+      const config = data.Config as { Labels?: Record<string, string> } | undefined;
+      containerPresetName = config?.Labels?.[PRESET_LABEL];
     } catch (err) {
       const error = err as { statusCode?: number };
       if (error.statusCode === 404) {
@@ -536,6 +637,22 @@ export class Orchestrator {
         );
       }
       // If we can't inspect, proceed with stop/remove
+    }
+
+    // Graceful stop via preset if available
+    if (containerPresetName && this._presets.has(containerPresetName)) {
+      const preset = this._presets.get(containerPresetName);
+      if (preset.gracefulStop) {
+        try {
+          await this.performGracefulStop(containerId, preset.gracefulStop);
+        } catch (err) {
+          // Log but don't fail - we'll force-stop below
+          this.logger.warn("Graceful stop failed, proceeding with normal stop", {
+            containerId,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+      }
     }
 
     // Stop container
@@ -728,9 +845,137 @@ export class Orchestrator {
     return this.docker;
   }
 
+  /**
+   * Access the preset registry for registering/querying presets.
+   */
+  get presets(): PresetRegistry {
+    return this._presets;
+  }
+
   // -------------------------------------------------------------------------
   // Private helpers
   // -------------------------------------------------------------------------
+
+  /**
+   * Performs a graceful stop using the preset's gracefulStop configuration.
+   * Sends a command to the container's stdin and optionally waits for exit.
+   */
+  private async performGracefulStop(
+    containerId: string,
+    config: { command: string; waitForExit?: boolean; timeout?: number },
+  ): Promise<void> {
+    const timeout = config.timeout ?? 30000;
+
+    try {
+      // Try using an existing console, or send a one-off command
+      const existingConsole = this.activeConsoles.get(containerId);
+      if (existingConsole && existingConsole.status === "connected") {
+        existingConsole.send(config.command);
+      } else {
+        await sendCommand(this.docker, containerId, config.command, 5000);
+      }
+    } catch {
+      throw new GracefulStopTimeoutError(containerId, timeout);
+    }
+
+    if (config.waitForExit) {
+      const deadline = Date.now() + timeout;
+      while (Date.now() < deadline) {
+        try {
+          const data = (await this.docker
+            .getContainer(containerId)
+            .inspect()) as unknown as Record<string, unknown>;
+          const state = data.State as { Running?: boolean } | undefined;
+          if (!state?.Running) {
+            return; // Container has exited
+          }
+        } catch {
+          return; // Container gone → success
+        }
+        await new Promise<void>((resolve) => setTimeout(resolve, 1000));
+      }
+      throw new GracefulStopTimeoutError(containerId, timeout);
+    }
+  }
+
+  /**
+   * Performs a ready check on a newly started container.
+   * Supports log pattern matching and health check based approaches.
+   */
+  private async performReadyCheck(
+    containerId: string,
+    readyCheck: { logMatch?: RegExp | string; healthCheck?: unknown; timeout?: number },
+    onProgress?: ProgressCallback,
+  ): Promise<void> {
+    const timeout = readyCheck.timeout ?? 60000;
+    const deadline = Date.now() + timeout;
+
+    // Log match based ready check
+    if (readyCheck.logMatch) {
+      const pattern =
+        readyCheck.logMatch instanceof RegExp
+          ? readyCheck.logMatch
+          : new RegExp(readyCheck.logMatch);
+
+      return new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new ReadyCheckTimeoutError(containerId, timeout));
+        }, timeout);
+
+        let logStream: { destroy: () => void } | null = null;
+
+        const cleanup = () => {
+          clearTimeout(timer);
+          if (logStream) {
+            logStream.destroy();
+          }
+        };
+
+        // Stream container logs and watch for pattern
+        const container = this.docker.getContainer(containerId);
+        container
+          .logs({ follow: true, stdout: true, stderr: true, tail: 0 })
+          .then((stream) => {
+            logStream = stream as unknown as { destroy: () => void };
+            const readable = stream as unknown as NodeJS.ReadableStream;
+            readable.on("data", (chunk: Buffer | string) => {
+              const text = typeof chunk === "string" ? chunk : chunk.toString("utf-8");
+              if (pattern.test(text)) {
+                cleanup();
+                resolve();
+              }
+            });
+            readable.on("error", (err: Error) => {
+              cleanup();
+              reject(err);
+            });
+            readable.on("end", () => {
+              cleanup();
+              reject(new ReadyCheckTimeoutError(containerId, timeout));
+            });
+          })
+          .catch((err: Error) => {
+            cleanup();
+            reject(err);
+          });
+      });
+    }
+
+    // Health check based ready check
+    if (readyCheck.healthCheck) {
+      onProgress?.("readycheck", "Waiting for health check");
+      const hcResult = await waitForHealthy(
+        this.docker,
+        containerId,
+        readyCheck.healthCheck as Parameters<typeof waitForHealthy>[2],
+      );
+      if (hcResult.status === "timeout" || hcResult.status === "unhealthy") {
+        throw new ReadyCheckTimeoutError(containerId, timeout);
+      }
+      return;
+    }
+  }
 
   private applyDefaults(config: ContainerConfig): ContainerConfig {
     const result = { ...config };
@@ -861,6 +1106,8 @@ const RESTART_FIELDS = new Set([
   "dns",
   "tmpfs",
   "healthCheck",
+  "interactive",
+  "tty",
 ]);
 
 function requiresRestart(changes: ConfigDiff[]): boolean {

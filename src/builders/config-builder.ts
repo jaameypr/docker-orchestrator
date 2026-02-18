@@ -92,6 +92,16 @@ export const ContainerConfigSchema = z.object({
   stopTimeout: z.number().int().positive().default(10),
   healthCheck: HealthCheckConfigSchema.optional(),
 
+  // Interactive / TTY
+  /** Enable interactive mode (OpenStdin + AttachStdin/Stdout/Stderr) */
+  interactive: z.boolean().optional(),
+  /** Allocate a pseudo-TTY (raw stream, no demux header) */
+  tty: z.boolean().optional(),
+
+  // Preset
+  /** Preset name to load from registry (resolved by Orchestrator) */
+  preset: z.string().optional(),
+
   // Meta
   /** Mark as production to enable stricter validation warnings */
   production: z.boolean().optional(),
@@ -324,6 +334,26 @@ export function buildContainerConfig(
     NetworkingConfig:
       networkingConfig as Dockerode.ContainerCreateOptions["NetworkingConfig"],
   };
+
+  // Interactive / TTY
+  if (config.interactive) {
+    (result as Record<string, unknown>).OpenStdin = true;
+    (result as Record<string, unknown>).AttachStdin = true;
+    (result as Record<string, unknown>).AttachStdout = true;
+    (result as Record<string, unknown>).AttachStderr = true;
+  }
+
+  if (config.tty) {
+    (result as Record<string, unknown>).Tty = true;
+    if (!config.interactive) {
+      warnings.push({
+        level: "warn",
+        code: "tty-without-interactive",
+        message:
+          'tty: true is set without interactive: true. The TTY will be allocated but stdin will not be attached. Set interactive: true to enable stdin.',
+      });
+    }
+  }
 
   if (config.name) {
     result.name = config.name;

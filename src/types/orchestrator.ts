@@ -17,6 +17,8 @@ export interface DeployResult {
   status: "running" | "healthy";
   ports: ResolvedPortMapping[];
   warnings: ConfigWarning[];
+  /** Persistent console (only when interactive mode is enabled) */
+  console?: import("../core/console.js").ContainerConsole;
 }
 
 // ---------------------------------------------------------------------------

@@ -26,6 +26,7 @@ export const WARNING_CODES = [
   "readonly-without-tmpfs",
   "invalid-seccomp-profile",
   "max-retries-without-on-failure",
+  "tty-without-interactive",
 ] as const;
 
 export type WarningCode = (typeof WARNING_CODES)[number];
