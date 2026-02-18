@@ -6,7 +6,7 @@ describe("ContainerConfigSchema validation", () => {
   it("should accept minimal valid config", () => {
     const result = ContainerConfigSchema.parse({ image: "alpine:latest" });
     expect(result.image).toBe("alpine:latest");
-    expect(result.restartPolicy).toBe("no");
+    expect(result.restartPolicy).toBe("unless-stopped");
   });
 
   it("should reject empty image", () => {
@@ -55,7 +55,7 @@ describe("buildContainerConfig", () => {
   it("should transform minimal config", () => {
     const { config: result } = buildContainerConfig({ image: "alpine:latest" });
     expect(result.Image).toBe("alpine:latest");
-    expect(result.HostConfig?.RestartPolicy?.Name).toBe("no");
+    expect(result.HostConfig?.RestartPolicy?.Name).toBe("unless-stopped");
   });
 
   it("should transform env variables to key=value format", () => {

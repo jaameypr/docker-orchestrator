@@ -31,5 +31,12 @@ export {
   InvalidResourceConfigError,
   InvalidSecurityConfigError,
   SeccompProfileNotFoundError,
+  // Phase 6: Orchestrator errors
+  DeploymentFailedError,
+  HealthCheckTimeoutError,
+  UpdateFailedError,
+  BatchOperationError,
+  DependencyResolutionError,
+  ImagePullError,
 } from "./base.js";
 export { mapDockerError } from "./mapping.js";

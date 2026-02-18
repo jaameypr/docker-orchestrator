@@ -374,3 +374,108 @@ export class SeccompProfileNotFoundError extends DockerOrchestratorError {
     this.profilePath = profilePath;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 6: Orchestrator Errors
+// ---------------------------------------------------------------------------
+
+export class DeploymentFailedError extends DockerOrchestratorError {
+  public readonly step: string;
+
+  constructor(step: string, message: string, cause?: Error) {
+    super(
+      `Deployment failed at step "${step}": ${message}`,
+      "DEPLOYMENT_FAILED",
+      cause,
+    );
+    this.name = "DeploymentFailedError";
+    this.step = step;
+  }
+}
+
+export class HealthCheckTimeoutError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly timeoutMs: number;
+
+  constructor(containerId: string, timeoutMs: number, cause?: Error) {
+    super(
+      `Health check timed out after ${timeoutMs}ms for container ${containerId}`,
+      "HEALTH_CHECK_TIMEOUT",
+      cause,
+    );
+    this.name = "HealthCheckTimeoutError";
+    this.containerId = containerId;
+    this.timeoutMs = timeoutMs;
+  }
+}
+
+export class UpdateFailedError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly rollbackStatus: "succeeded" | "failed" | "not_attempted";
+
+  constructor(
+    containerId: string,
+    rollbackStatus: "succeeded" | "failed" | "not_attempted",
+    message: string,
+    cause?: Error,
+  ) {
+    super(
+      `Update failed for container ${containerId}. Rollback ${rollbackStatus}. ${message}`,
+      "UPDATE_FAILED",
+      cause,
+    );
+    this.name = "UpdateFailedError";
+    this.containerId = containerId;
+    this.rollbackStatus = rollbackStatus;
+  }
+}
+
+export class BatchOperationError extends DockerOrchestratorError {
+  public readonly succeeded: number;
+  public readonly failed: number;
+  public readonly errors: Array<{ index: number; error: Error }>;
+
+  constructor(
+    operation: string,
+    succeeded: number,
+    failed: number,
+    errors: Array<{ index: number; error: Error }>,
+  ) {
+    super(
+      `Batch ${operation} partially failed: ${succeeded} succeeded, ${failed} failed`,
+      "BATCH_OPERATION_ERROR",
+    );
+    this.name = "BatchOperationError";
+    this.succeeded = succeeded;
+    this.failed = failed;
+    this.errors = errors;
+  }
+}
+
+export class DependencyResolutionError extends DockerOrchestratorError {
+  public readonly services: string[];
+
+  constructor(services: string[], cause?: Error) {
+    super(
+      `Circular dependency detected among services: ${services.join(" → ")}`,
+      "DEPENDENCY_RESOLUTION_ERROR",
+      cause,
+    );
+    this.name = "DependencyResolutionError";
+    this.services = services;
+  }
+}
+
+export class ImagePullError extends DockerOrchestratorError {
+  public readonly imageName: string;
+
+  constructor(imageName: string, reason: string, cause?: Error) {
+    super(
+      `Failed to pull image "${imageName}": ${reason}`,
+      "IMAGE_PULL_ERROR",
+      cause,
+    );
+    this.name = "ImagePullError";
+    this.imageName = imageName;
+  }
+}

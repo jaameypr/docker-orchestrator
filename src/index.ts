@@ -88,8 +88,35 @@ export {
   filterWarnings,
 } from "./core/validation.js";
 
+// Core – Health Check (Phase 6)
+export {
+  buildDockerHealthcheck,
+  waitForHealthy,
+  checkHttp,
+  checkTcp,
+  resolveHostPort,
+  healthEmitter,
+} from "./core/health-check.js";
+
+// Core – Orchestrator (Phase 6)
+export { Orchestrator } from "./core/orchestrator.js";
+
+// Core – Stack (Phase 6)
+export {
+  resolveDependencyOrder,
+  deployStack,
+  destroyStack,
+} from "./core/stack.js";
+
 // Builders
-export { buildContainerConfig, ContainerConfigSchema } from "./builders/config-builder.js";
+export {
+  buildContainerConfig,
+  ContainerConfigSchema,
+  CONFIG_DEFAULTS,
+  diffConfigs,
+  serializeConfig,
+  deserializeConfig,
+} from "./builders/config-builder.js";
 export type { ContainerConfig, BuildContainerConfigResult } from "./builders/config-builder.js";
 
 // Builders – Port Mapper (Phase 4)
@@ -144,6 +171,13 @@ export {
   InvalidResourceConfigError,
   InvalidSecurityConfigError,
   SeccompProfileNotFoundError,
+  // Phase 6 errors
+  DeploymentFailedError,
+  HealthCheckTimeoutError,
+  UpdateFailedError,
+  BatchOperationError,
+  DependencyResolutionError,
+  ImagePullError,
   mapDockerError,
 } from "./errors/index.js";
 
@@ -322,3 +356,52 @@ export { RestartPolicySchema } from "./types/restart.js";
 // Types – Warnings (Phase 5)
 export type { WarningLevel, WarningCode, ConfigWarning } from "./types/warnings.js";
 export { WARNING_CODES, ConfigWarningSchema } from "./types/warnings.js";
+
+// Types – Health Check (Phase 6)
+export type {
+  HttpGet,
+  TcpSocket,
+  ExecCheck,
+  HealthCheckConfig,
+  HealthStatus,
+  HealthCheckResult,
+  HealthCheckEvents,
+} from "./types/health-check.js";
+export {
+  HealthCheckConfigSchema,
+  HttpGetSchema,
+  TcpSocketSchema,
+  ExecCheckSchema,
+} from "./types/health-check.js";
+
+// Types – Orchestrator (Phase 6)
+export type {
+  DeployResult,
+  ConfigDiff,
+  UpdateResult,
+  DestroyOptions,
+  BatchItemResult,
+  BatchResult,
+  ProgressCallback,
+  OrchestratorOptions,
+} from "./types/orchestrator.js";
+export { DestroyOptionsSchema } from "./types/orchestrator.js";
+
+// Types – Stack (Phase 6)
+export type {
+  StackServiceConfig,
+  StackNetworkConfig,
+  StackVolumeConfig,
+  StackConfig,
+  StackServiceResult,
+  StackDeployResult,
+} from "./types/stack.js";
+export {
+  StackServiceSchema,
+  StackNetworkSchema,
+  StackVolumeSchema,
+  StackConfigSchema,
+} from "./types/stack.js";
+
+// Factory function (Phase 6)
+export { createOrchestrator } from "./core/orchestrator.js";
