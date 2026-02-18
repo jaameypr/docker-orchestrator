@@ -31,7 +31,7 @@ describeDocker("Integration: File Operations", () => {
   beforeAll(async () => {
     mkdirSync(TMP_DIR, { recursive: true });
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}${Date.now()}`,
       cmd: ["sleep", "120"],

@@ -25,5 +25,11 @@ export {
   PortAlreadyInUseError,
   // Phase 4: Mount errors
   InvalidMountError,
+  // Phase 5: Resource & Security errors
+  InsufficientResourcesError,
+  OOMKilledError,
+  InvalidResourceConfigError,
+  InvalidSecurityConfigError,
+  SeccompProfileNotFoundError,
 } from "./base.js";
 export { mapDockerError } from "./mapping.js";

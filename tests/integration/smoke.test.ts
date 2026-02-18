@@ -66,7 +66,7 @@ describeDocker("Integration: Docker Smoke Test", () => {
     const containerName = `${TEST_PREFIX}lifecycle-${Date.now()}`;
 
     // Build config
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: containerName,
       cmd: ["sleep", "30"],
@@ -114,7 +114,7 @@ describeDocker("Integration: Docker Smoke Test", () => {
   it("should list all containers including stopped ones", async () => {
     const containerName = `${TEST_PREFIX}list-${Date.now()}`;
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: containerName,
       cmd: ["true"], // exits immediately

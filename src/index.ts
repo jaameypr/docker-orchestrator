@@ -59,9 +59,38 @@ export {
   volumeExists,
 } from "./core/volume.js";
 
+// Core – Resource Limits (Phase 5)
+export {
+  parseMemoryString,
+  parseCpuString,
+  buildResourceHostConfig,
+} from "./core/resource-limits.js";
+export type { ResolvedResourceHostConfig } from "./core/resource-limits.js";
+
+// Core – Security (Phase 5)
+export {
+  buildSecurityConfig,
+  applySecurityPreset,
+  loadSeccompProfile,
+  validateCapabilities,
+} from "./core/security.js";
+export type { ResolvedSecurityConfig } from "./core/security.js";
+
+// Core – Restart Policy (Phase 5)
+export { buildRestartPolicy } from "./core/restart-policy.js";
+
+// Core – Validation (Phase 5)
+export {
+  validateResourceLimits,
+  validateSecurityConfig,
+  validateRestartPolicy,
+  validateProductionConfig,
+  filterWarnings,
+} from "./core/validation.js";
+
 // Builders
 export { buildContainerConfig, ContainerConfigSchema } from "./builders/config-builder.js";
-export type { ContainerConfig } from "./builders/config-builder.js";
+export type { ContainerConfig, BuildContainerConfigResult } from "./builders/config-builder.js";
 
 // Builders – Port Mapper (Phase 4)
 export {
@@ -109,6 +138,12 @@ export {
   VolumeAlreadyExistsError,
   PortAlreadyInUseError,
   InvalidMountError,
+  // Phase 5 errors
+  InsufficientResourcesError,
+  OOMKilledError,
+  InvalidResourceConfigError,
+  InvalidSecurityConfigError,
+  SeccompProfileNotFoundError,
   mapDockerError,
 } from "./errors/index.js";
 
@@ -240,3 +275,50 @@ export type {
   DockerMountConfig,
 } from "./types/mounts.js";
 export { MountInputSchema } from "./types/mounts.js";
+
+// Types – Resources (Phase 5)
+export type {
+  MemoryLimits,
+  CpuLimits,
+  PidLimits,
+  BlockIOLimits,
+  DeviceRate,
+  ResourceConfig,
+} from "./types/resources.js";
+export {
+  MemoryLimitsSchema,
+  CpuLimitsSchema,
+  PidLimitsSchema,
+  BlockIOLimitsSchema,
+  DeviceRateSchema,
+  ResourceConfigSchema,
+} from "./types/resources.js";
+
+// Types – Security (Phase 5)
+export type {
+  LinuxCapability,
+  CapabilityProfile,
+  CapabilityProfileName,
+  SeccompConfig,
+  SecurityConfig,
+  SecurityPresetName,
+  SecurityPreset,
+} from "./types/security.js";
+export {
+  LINUX_CAPABILITIES,
+  DANGEROUS_CAPABILITIES,
+  CapabilityProfileNameSchema,
+  CapabilityProfiles,
+  SeccompConfigSchema,
+  SecurityConfigSchema,
+  SecurityPresetNameSchema,
+  SecurityPresets,
+} from "./types/security.js";
+
+// Types – Restart Policy (Phase 5)
+export type { RestartPolicy, DockerRestartPolicy } from "./types/restart.js";
+export { RestartPolicySchema } from "./types/restart.js";
+
+// Types – Warnings (Phase 5)
+export type { WarningLevel, WarningCode, ConfigWarning } from "./types/warnings.js";
+export { WARNING_CODES, ConfigWarningSchema } from "./types/warnings.js";

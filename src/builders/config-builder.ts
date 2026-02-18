@@ -2,8 +2,22 @@ import { z } from "zod";
 import type Dockerode from "dockerode";
 import { PortMappingInputSchema } from "../types/ports.js";
 import { MountInputSchema } from "../types/mounts.js";
+import { ResourceConfigSchema, type ResourceConfig } from "../types/resources.js";
+import { SecurityConfigSchema, type SecurityConfig, SecurityPresetNameSchema, type SecurityPresetName } from "../types/security.js";
+import { RestartPolicySchema, type RestartPolicy } from "../types/restart.js";
+import type { ConfigWarning } from "../types/warnings.js";
 import { resolvePortMappings } from "./port-mapper.js";
 import { resolveVolumeMounts } from "./volume-mapper.js";
+import { buildResourceHostConfig } from "../core/resource-limits.js";
+import { buildSecurityConfig, applySecurityPreset } from "../core/security.js";
+import { buildRestartPolicy } from "../core/restart-policy.js";
+import {
+  validateResourceLimits,
+  validateSecurityConfig,
+  validateRestartPolicy,
+  validateProductionConfig,
+  filterWarnings,
+} from "../core/validation.js";
 
 const PortMappingSchema = z.object({
   container: z.number().int().positive(),
@@ -39,18 +53,34 @@ export const ContainerConfigSchema = z.object({
     .optional(),
   portMappings: z.array(PortMappingInputSchema).optional(),
   mounts: z.array(MountInputSchema).optional(),
+  // Phase 5: Resource limits, security, restart policy
+  resources: ResourceConfigSchema.optional(),
+  security: SecurityConfigSchema.optional(),
+  securityProfile: SecurityPresetNameSchema.optional(),
+  advancedRestartPolicy: RestartPolicySchema.optional(),
+  /** Mark as production to enable stricter validation warnings */
+  production: z.boolean().optional(),
+  /** Suppress specific warning codes */
+  suppressWarnings: z.array(z.string()).optional(),
 });
 
 export type ContainerConfig = z.infer<typeof ContainerConfigSchema>;
 
+export interface BuildContainerConfigResult {
+  config: Dockerode.ContainerCreateOptions;
+  warnings: ConfigWarning[];
+}
+
 /**
  * Transforms a user-friendly container config into
  * the dockerode ContainerCreateOptions format.
+ * Returns both the config and any validation warnings.
  */
 export function buildContainerConfig(
   input: ContainerConfig,
-): Dockerode.ContainerCreateOptions {
+): BuildContainerConfigResult {
   const config = ContainerConfigSchema.parse(input);
+  const warnings: ConfigWarning[] = [];
 
   // Build env array
   const env = config.env
@@ -114,20 +144,77 @@ export function buildContainerConfig(
     networkingConfig = { EndpointsConfig: endpoints };
   }
 
+  // Phase 5: Resource limits
+  let resourceHostConfig: Record<string, unknown> = {};
+  if (config.resources) {
+    warnings.push(...validateResourceLimits(config.resources));
+    resourceHostConfig = buildResourceHostConfig(config.resources) as Record<string, unknown>;
+  }
+
+  // Phase 5: Security
+  let securityHostConfig: Record<string, unknown> = {};
+  let userField: string | undefined;
+  if (config.securityProfile) {
+    const resolved = applySecurityPreset(
+      config.securityProfile,
+      config.security,
+    );
+    if (resolved.User) userField = resolved.User;
+    securityHostConfig = { ...resolved };
+    if ("User" in securityHostConfig) delete securityHostConfig.User;
+
+    // Validate the merged security config
+    const mergedSecurity = {
+      ...config.security,
+      ...(config.securityProfile === "hardened"
+        ? { user: resolved.User ?? config.security?.user }
+        : {}),
+    };
+    if (config.security) {
+      warnings.push(...validateSecurityConfig(config.security));
+    }
+  } else if (config.security) {
+    warnings.push(...validateSecurityConfig(config.security));
+    const resolved = buildSecurityConfig(config.security);
+    if (resolved.User) userField = resolved.User;
+    securityHostConfig = { ...resolved };
+    if ("User" in securityHostConfig) delete securityHostConfig.User;
+  }
+
+  // Phase 5: Restart policy (advanced object form)
+  let restartPolicyObj: { Name: string; MaximumRetryCount?: number } = {
+    Name: config.restartPolicy,
+  };
+  if (config.advancedRestartPolicy) {
+    warnings.push(...validateRestartPolicy(config.advancedRestartPolicy));
+    const resolved = buildRestartPolicy(config.advancedRestartPolicy);
+    restartPolicyObj = resolved;
+  }
+
+  // Phase 5: Production mode warnings
+  if (config.production) {
+    warnings.push(
+      ...validateProductionConfig(config.resources, config.security),
+    );
+  }
+
+  // Build the final HostConfig by merging all sources
+  const hostConfig: Record<string, unknown> = {
+    PortBindings: Object.keys(portBindings).length > 0 ? portBindings : undefined,
+    Binds: binds.length > 0 ? binds : undefined,
+    Mounts: dockerMounts,
+    RestartPolicy: restartPolicyObj,
+    ...resourceHostConfig,
+    ...securityHostConfig,
+  };
+
   const result: Dockerode.ContainerCreateOptions = {
     Image: config.image,
     Env: env,
     Cmd: config.cmd,
     ExposedPorts: Object.keys(exposedPorts).length > 0 ? exposedPorts : undefined,
     Hostname: config.hostname ?? config.name,
-    HostConfig: {
-      PortBindings: Object.keys(portBindings).length > 0 ? portBindings : undefined,
-      Binds: binds.length > 0 ? binds : undefined,
-      Mounts: dockerMounts,
-      RestartPolicy: {
-        Name: config.restartPolicy,
-      },
-    },
+    HostConfig: hostConfig as Dockerode.ContainerCreateOptions["HostConfig"],
     NetworkingConfig: networkingConfig as Dockerode.ContainerCreateOptions["NetworkingConfig"],
   };
 
@@ -135,5 +222,12 @@ export function buildContainerConfig(
     result.name = config.name;
   }
 
-  return result;
+  if (userField) {
+    result.User = userField;
+  }
+
+  // Filter suppressed warnings
+  const filteredWarnings = filterWarnings(warnings, config.suppressWarnings);
+
+  return { config: result, warnings: filteredWarnings };
 }

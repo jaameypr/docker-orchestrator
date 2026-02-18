@@ -22,7 +22,7 @@ describeDocker("Integration: Exec Operations", () => {
   let containerId: string;
 
   beforeAll(async () => {
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}${Date.now()}`,
       cmd: ["sleep", "120"],

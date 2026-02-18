@@ -298,3 +298,79 @@ export class InvalidMountError extends DockerOrchestratorError {
     this.mountSpec = mountSpec;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Phase 5: Resource & Security Errors
+// ---------------------------------------------------------------------------
+
+export class InsufficientResourcesError extends DockerOrchestratorError {
+  public readonly resource: string;
+
+  constructor(resource: string, detail: string, cause?: Error) {
+    super(
+      `Insufficient resources (${resource}): ${detail}`,
+      "INSUFFICIENT_RESOURCES",
+      cause,
+    );
+    this.name = "InsufficientResourcesError";
+    this.resource = resource;
+  }
+}
+
+export class OOMKilledError extends DockerOrchestratorError {
+  public readonly containerId: string;
+  public readonly memoryLimit: number;
+
+  constructor(containerId: string, memoryLimit: number, cause?: Error) {
+    super(
+      `Container ${containerId} was killed by OOM killer (memory limit: ${memoryLimit} bytes)`,
+      "OOM_KILLED",
+      cause,
+    );
+    this.name = "OOMKilledError";
+    this.containerId = containerId;
+    this.memoryLimit = memoryLimit;
+  }
+}
+
+export class InvalidResourceConfigError extends DockerOrchestratorError {
+  public readonly field: string;
+
+  constructor(field: string, reason: string, cause?: Error) {
+    super(
+      `Invalid resource configuration for "${field}": ${reason}`,
+      "INVALID_RESOURCE_CONFIG",
+      cause,
+    );
+    this.name = "InvalidResourceConfigError";
+    this.field = field;
+  }
+}
+
+export class InvalidSecurityConfigError extends DockerOrchestratorError {
+  public readonly field: string;
+
+  constructor(field: string, reason: string, cause?: Error) {
+    super(
+      `Invalid security configuration for "${field}": ${reason}`,
+      "INVALID_SECURITY_CONFIG",
+      cause,
+    );
+    this.name = "InvalidSecurityConfigError";
+    this.field = field;
+  }
+}
+
+export class SeccompProfileNotFoundError extends DockerOrchestratorError {
+  public readonly profilePath: string;
+
+  constructor(profilePath: string, cause?: Error) {
+    super(
+      `Seccomp profile not found: ${profilePath}`,
+      "SECCOMP_PROFILE_NOT_FOUND",
+      cause,
+    );
+    this.name = "SeccompProfileNotFoundError";
+    this.profilePath = profilePath;
+  }
+}

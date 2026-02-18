@@ -37,7 +37,7 @@ describeDocker("Integration: Port Mapping", () => {
   });
 
   it("should create a container with port mapping and read assigned port", async () => {
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}port-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -54,7 +54,7 @@ describeDocker("Integration: Port Mapping", () => {
   });
 
   it("should auto-assign host port when not specified", async () => {
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}auto-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -71,7 +71,7 @@ describeDocker("Integration: Port Mapping", () => {
   });
 
   it("should use portMappings field with string syntax", async () => {
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}pmaps-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -92,7 +92,7 @@ describeDocker("Integration: Port Mapping", () => {
   });
 
   it("should verify checkPortAvailable returns false for an in-use port", async () => {
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}inuse-${Date.now()}`,
       cmd: ["nc", "-l", "-p", "8080"],

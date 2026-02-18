@@ -45,7 +45,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
   describe("Logs", () => {
     it("should retrieve logs from a container with known output", async () => {
       const name = `${TEST_PREFIX}logs-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sh", "-c", 'echo "hello from stdout" && echo "hello from stderr" >&2'],
@@ -78,7 +78,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
 
     it("should tail last N lines", async () => {
       const name = `${TEST_PREFIX}tail-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sh", "-c", 'for i in $(seq 1 20); do echo "line $i"; done'],
@@ -96,7 +96,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
 
     it("should stream live logs from a running container", async () => {
       const name = `${TEST_PREFIX}stream-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sh", "-c", 'for i in 1 2 3; do echo "live line $i"; sleep 0.5; done'],
@@ -125,7 +125,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
   describe("Metrics", () => {
     it("should get metrics from a running container", async () => {
       const name = `${TEST_PREFIX}metrics-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sh", "-c", "while true; do :; done"],
@@ -154,7 +154,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
 
     it("should stream metrics from a running container", async () => {
       const name = `${TEST_PREFIX}metrics-stream-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sh", "-c", "while true; do :; done"],
@@ -189,7 +189,7 @@ describeDocker("Integration: Monitoring & Logs", () => {
 
       // Create and start a container to trigger events
       const name = `${TEST_PREFIX}events-${Date.now()}`;
-      const config = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name,
         cmd: ["sleep", "5"],
@@ -218,8 +218,8 @@ describeDocker("Integration: Monitoring & Logs", () => {
       const name1 = `${TEST_PREFIX}evt-a-${Date.now()}`;
       const name2 = `${TEST_PREFIX}evt-b-${Date.now()}`;
 
-      const config1 = buildContainerConfig({ image: TEST_IMAGE, name: name1, cmd: ["sleep", "5"] });
-      const config2 = buildContainerConfig({ image: TEST_IMAGE, name: name2, cmd: ["sleep", "5"] });
+      const { config: config1 } = buildContainerConfig({ image: TEST_IMAGE, name: name1, cmd: ["sleep", "5"] });
+      const { config: config2 } = buildContainerConfig({ image: TEST_IMAGE, name: name2, cmd: ["sleep", "5"] });
 
       const id1 = await createContainer(docker, config1);
       createdContainers.push(id1);

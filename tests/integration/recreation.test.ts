@@ -51,7 +51,7 @@ describeDocker("Integration: Container Recreation", () => {
 
   it("should recreate container with new env var", async () => {
     const containerName = `${TEST_PREFIX}env-${Date.now()}`;
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: containerName,
       cmd: ["sleep", "120"],
@@ -123,7 +123,7 @@ describeDocker("Integration: Container Recreation", () => {
 
   it("should rollback when recreating with invalid image", async () => {
     const containerName = `${TEST_PREFIX}rollback-${Date.now()}`;
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: containerName,
       cmd: ["sleep", "120"],

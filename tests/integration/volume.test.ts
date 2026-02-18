@@ -121,7 +121,7 @@ describeDocker("Integration: Volume Management", () => {
     createdVolumes.push(volName);
 
     // Create first container with volume, write a file
-    const config1 = buildContainerConfig({
+    const { config: config1 } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}write-${Date.now()}`,
       cmd: ["sh", "-c", "echo 'hello persistence' > /data/test.txt && sleep 5"],
@@ -135,7 +135,7 @@ describeDocker("Integration: Volume Management", () => {
     await stopContainer(docker, id1, 5);
 
     // Create second container with same volume, read the file
-    const config2 = buildContainerConfig({
+    const { config: config2 } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}read-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -154,7 +154,7 @@ describeDocker("Integration: Volume Management", () => {
     await createVolume(docker, { name: volName });
     createdVolumes.push(volName);
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}ro-${Date.now()}`,
       cmd: ["sleep", "30"],

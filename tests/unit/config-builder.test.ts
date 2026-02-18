@@ -53,13 +53,13 @@ describe("ContainerConfigSchema validation", () => {
 
 describe("buildContainerConfig", () => {
   it("should transform minimal config", () => {
-    const result = buildContainerConfig({ image: "alpine:latest" });
+    const { config: result } = buildContainerConfig({ image: "alpine:latest" });
     expect(result.Image).toBe("alpine:latest");
     expect(result.HostConfig?.RestartPolicy?.Name).toBe("no");
   });
 
   it("should transform env variables to key=value format", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       env: { FOO: "bar", BAZ: "qux" },
     });
@@ -67,7 +67,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should configure port bindings", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "nginx",
       ports: [
         { container: 80, host: 8080, protocol: "tcp" },
@@ -86,7 +86,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should handle port without host (random assignment)", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "nginx",
       ports: [{ container: 80 }],
     });
@@ -97,7 +97,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should configure volume binds", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       volumes: [
         { host: "/host/data", container: "/data" },
@@ -112,7 +112,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should set hostname from name when hostname not provided", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       name: "my-container",
     });
@@ -121,7 +121,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should prefer explicit hostname over name", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       name: "my-container",
       hostname: "custom-host",
@@ -130,7 +130,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should set restart policy", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       restartPolicy: "unless-stopped",
     });
@@ -138,7 +138,7 @@ describe("buildContainerConfig", () => {
   });
 
   it("should pass cmd array", () => {
-    const result = buildContainerConfig({
+    const { config: result } = buildContainerConfig({
       image: "alpine",
       cmd: ["echo", "hello"],
     });
@@ -146,10 +146,15 @@ describe("buildContainerConfig", () => {
   });
 
   it("should omit undefined optional fields", () => {
-    const result = buildContainerConfig({ image: "alpine" });
+    const { config: result } = buildContainerConfig({ image: "alpine" });
     expect(result.Env).toBeUndefined();
     expect(result.ExposedPorts).toBeUndefined();
     expect(result.HostConfig?.PortBindings).toBeUndefined();
     expect(result.HostConfig?.Binds).toBeUndefined();
+  });
+
+  it("should return warnings array", () => {
+    const { warnings } = buildContainerConfig({ image: "alpine" });
+    expect(Array.isArray(warnings)).toBe(true);
   });
 });

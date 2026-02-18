@@ -108,7 +108,7 @@ describeDocker("Integration: Network Management", () => {
     });
     createdNetworks.push(netId);
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}con-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -143,7 +143,7 @@ describeDocker("Integration: Network Management", () => {
     });
     createdNetworks.push(netId);
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}fixip-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -171,7 +171,7 @@ describeDocker("Integration: Network Management", () => {
     createdNetworks.push(netId);
 
     // Container A
-    const configA = buildContainerConfig({
+    const { config: configA } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}comm-a-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -181,7 +181,7 @@ describeDocker("Integration: Network Management", () => {
     await startContainer(docker, containerA);
 
     // Container B
-    const configB = buildContainerConfig({
+    const { config: configB } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}comm-b-${Date.now()}`,
       cmd: ["sleep", "30"],
@@ -208,7 +208,7 @@ describeDocker("Integration: Network Management", () => {
     const netId = await createNetwork(docker, { name: netName });
     createdNetworks.push(netId);
 
-    const config = buildContainerConfig({
+    const { config } = buildContainerConfig({
       image: TEST_IMAGE,
       name: `${TEST_PREFIX}ref-${Date.now()}`,
       cmd: ["sleep", "30"],
