@@ -29,15 +29,17 @@ describeDocker("Integration: Preset Workflow", () => {
   });
 
   it("should register a preset and deploy a container with it", async () => {
-    orch.presets.register(definePreset({
-      name: "test-alpine",
-      config: {
-        image: "alpine:latest",
-        cmd: ["sleep", "60"],
-        env: { PRESET_VAR: "from-preset" },
-        labels: { "test.source": "preset" },
-      },
-    }));
+    orch.presets.register(
+      definePreset({
+        name: "test-alpine",
+        config: {
+          image: "alpine:latest",
+          cmd: ["sleep", "60"],
+          env: { PRESET_VAR: "from-preset" },
+          labels: { "test.source": "preset" },
+        },
+      }),
+    );
 
     const result = await orch.deploy({
       image: "alpine:latest",
@@ -59,14 +61,16 @@ describeDocker("Integration: Preset Workflow", () => {
   });
 
   it("should merge user overrides with preset config", async () => {
-    orch.presets.register(definePreset({
-      name: "merge-test",
-      config: {
-        image: "alpine:latest",
-        cmd: ["sleep", "60"],
-        env: { A: "1", B: "2" },
-      },
-    }));
+    orch.presets.register(
+      definePreset({
+        name: "merge-test",
+        config: {
+          image: "alpine:latest",
+          cmd: ["sleep", "60"],
+          env: { A: "1", B: "2" },
+        },
+      }),
+    );
 
     const result = await orch.deploy({
       image: "alpine:latest",
@@ -84,19 +88,21 @@ describeDocker("Integration: Preset Workflow", () => {
   });
 
   it("should deploy and destroy with graceful stop", async () => {
-    orch.presets.register(definePreset({
-      name: "graceful-test",
-      config: {
-        image: "alpine:latest",
-        cmd: ["cat"],
-        interactive: true,
-      },
-      gracefulStop: {
-        command: "exit",
-        waitForExit: false,
-        timeout: 5000,
-      },
-    }));
+    orch.presets.register(
+      definePreset({
+        name: "graceful-test",
+        config: {
+          image: "alpine:latest",
+          cmd: ["cat"],
+          interactive: true,
+        },
+        gracefulStop: {
+          command: "exit",
+          waitForExit: false,
+          timeout: 5000,
+        },
+      }),
+    );
 
     const result = await orch.deploy({
       image: "alpine:latest",

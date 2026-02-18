@@ -56,9 +56,7 @@ describeDocker("Integration: Docker Smoke Test", () => {
 
   it("should list images including alpine", async () => {
     const images = await listImages(docker);
-    const alpine = images.find((img) =>
-      img.repoTags.some((tag) => tag.includes("alpine")),
-    );
+    const alpine = images.find((img) => img.repoTags.some((tag) => tag.includes("alpine")));
     expect(alpine).toBeDefined();
   });
 
@@ -106,9 +104,7 @@ describeDocker("Integration: Docker Smoke Test", () => {
     if (idx !== -1) createdContainers.splice(idx, 1);
 
     // Verify removed
-    await expect(inspectContainer(docker, id)).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(inspectContainer(docker, id)).rejects.toThrow(ContainerNotFoundError);
   });
 
   it("should list all containers including stopped ones", async () => {

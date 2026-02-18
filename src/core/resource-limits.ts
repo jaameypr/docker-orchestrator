@@ -103,9 +103,7 @@ export interface ResolvedResourceHostConfig {
   BlkioDeviceWriteBps?: Array<{ Path: string; Rate: number }>;
 }
 
-export function buildResourceHostConfig(
-  input: ResourceConfig,
-): ResolvedResourceHostConfig {
+export function buildResourceHostConfig(input: ResourceConfig): ResolvedResourceHostConfig {
   const config = ResourceConfigSchema.parse(input);
   const result: ResolvedResourceHostConfig = {};
 
@@ -122,10 +120,7 @@ export function buildResourceHostConfig(
       result.MemoryReservation = reservationBytes;
     }
     if (mem.swap !== undefined) {
-      const swapVal =
-        typeof mem.swap === "string"
-          ? parseMemoryString(mem.swap)
-          : mem.swap;
+      const swapVal = typeof mem.swap === "string" ? parseMemoryString(mem.swap) : mem.swap;
       // Docker API: MemorySwap = total (memory + swap). -1 = unlimited
       if (swapVal === -1) {
         result.MemorySwap = -1;

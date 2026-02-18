@@ -48,9 +48,7 @@ export type ConsoleStatus = "connected" | "disconnected" | "reconnecting";
 
 export const SendAndWaitOptionsSchema = z.object({
   timeout: z.number().int().positive().default(5000),
-  matchOutput: z
-    .union([z.string(), z.instanceof(RegExp)])
-    .optional(),
+  matchOutput: z.union([z.string(), z.instanceof(RegExp)]).optional(),
   lines: z.number().int().positive().optional(),
 });
 

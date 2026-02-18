@@ -18,10 +18,7 @@ import {
 import { executeCommand } from "../../src/core/exec.js";
 import { pullImage, imageExists } from "../../src/core/image.js";
 import { buildContainerConfig } from "../../src/builders/config-builder.js";
-import {
-  VolumeAlreadyExistsError,
-  VolumeNotFoundError,
-} from "../../src/errors/base.js";
+import { VolumeAlreadyExistsError, VolumeNotFoundError } from "../../src/errors/base.js";
 
 const TEST_IMAGE = "alpine:latest";
 const TEST_PREFIX = "docker-orch-vol-test-";
@@ -46,12 +43,16 @@ describeDocker("Integration: Volume Management", () => {
     for (const id of createdContainers) {
       try {
         await removeContainer(docker, id, true);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     for (const name of createdVolumes) {
       try {
         await removeVolume(docker, name, true);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   });
 
@@ -76,9 +77,7 @@ describeDocker("Integration: Volume Management", () => {
     await createVolume(docker, { name });
     createdVolumes.push(name);
 
-    await expect(createVolume(docker, { name })).rejects.toThrow(
-      VolumeAlreadyExistsError,
-    );
+    await expect(createVolume(docker, { name })).rejects.toThrow(VolumeAlreadyExistsError);
   });
 
   it("should check volume existence", async () => {
@@ -110,9 +109,9 @@ describeDocker("Integration: Volume Management", () => {
   });
 
   it("should throw VolumeNotFoundError when removing nonexistent", async () => {
-    await expect(
-      removeVolume(docker, "nonexistent-vol-" + Date.now()),
-    ).rejects.toThrow(VolumeNotFoundError);
+    await expect(removeVolume(docker, "nonexistent-vol-" + Date.now())).rejects.toThrow(
+      VolumeNotFoundError,
+    );
   });
 
   it("should persist data across container lifecycle", async () => {
@@ -165,7 +164,11 @@ describeDocker("Integration: Volume Management", () => {
     await startContainer(docker, id);
 
     // Try to write – should fail
-    const result = await executeCommand(docker, id, "touch /data/readonly-test 2>&1 || echo WRITE_FAILED");
+    const result = await executeCommand(
+      docker,
+      id,
+      "touch /data/readonly-test 2>&1 || echo WRITE_FAILED",
+    );
     expect(result.stdout).toContain("WRITE_FAILED");
   });
 

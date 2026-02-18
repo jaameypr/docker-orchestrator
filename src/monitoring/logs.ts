@@ -3,7 +3,13 @@ import EventEmitter from "eventemitter3";
 import { ContainerNotFoundError } from "../errors/base.js";
 import { mapDockerError } from "../errors/mapping.js";
 import { parseFrames, StreamType, parseDockerTimestamp } from "../utils/stream-parser.js";
-import { LogOptionsSchema, type LogOptions, type LogEntry, type LogStream, type LogStreamEvents } from "../types/logs.js";
+import {
+  LogOptionsSchema,
+  type LogOptions,
+  type LogEntry,
+  type LogStream,
+  type LogStreamEvents,
+} from "../types/logs.js";
 
 /**
  * Converts a Date or Unix timestamp to seconds since epoch.
@@ -19,7 +25,11 @@ function toUnixSeconds(value: Date | number): number {
  * Parses a raw line of Docker log output into a LogEntry.
  * If timestamps are enabled, the line starts with an RFC 3339 timestamp followed by a space.
  */
-function parseLogLine(line: string, streamName: "stdout" | "stderr", hasTimestamps: boolean): LogEntry {
+function parseLogLine(
+  line: string,
+  streamName: "stdout" | "stderr",
+  hasTimestamps: boolean,
+): LogEntry {
   if (!hasTimestamps) {
     return { stream: streamName, timestamp: null, message: line };
   }
@@ -109,7 +119,10 @@ export async function getContainerLogs(
 /**
  * Collects all log data from a non-follow stream and returns parsed entries.
  */
-function collectLogs(rawStream: NodeJS.ReadableStream, opts: { timestamps: boolean; stdout: boolean; stderr: boolean }): Promise<LogEntry[]> {
+function collectLogs(
+  rawStream: NodeJS.ReadableStream,
+  opts: { timestamps: boolean; stdout: boolean; stderr: boolean },
+): Promise<LogEntry[]> {
   return new Promise((resolve, reject) => {
     const chunks: Buffer[] = [];
 
@@ -140,8 +153,7 @@ function parseLogBuffer(
   const { frames } = parseFrames(data);
 
   for (const frame of frames) {
-    const streamName =
-      frame.streamType === StreamType.Stdout ? "stdout" : "stderr";
+    const streamName = frame.streamType === StreamType.Stdout ? "stdout" : "stderr";
 
     if (streamName === "stdout" && !opts.stdout) continue;
     if (streamName === "stderr" && !opts.stderr) continue;
@@ -179,8 +191,7 @@ function createLogStream(
     buffer = Buffer.from(remainder);
 
     for (const frame of frames) {
-      const streamName =
-        frame.streamType === StreamType.Stdout ? "stdout" : "stderr";
+      const streamName = frame.streamType === StreamType.Stdout ? "stdout" : "stderr";
 
       if (streamName === "stdout" && !opts.stdout) continue;
       if (streamName === "stderr" && !opts.stderr) continue;
@@ -299,10 +310,7 @@ export async function tailLogs(
 /**
  * Opens a live log stream with sensible defaults.
  */
-export async function streamLogs(
-  docker: Docker,
-  containerId: string,
-): Promise<LogStream> {
+export async function streamLogs(docker: Docker, containerId: string): Promise<LogStream> {
   const result = await getContainerLogs(docker, containerId, {
     follow: true,
     timestamps: true,

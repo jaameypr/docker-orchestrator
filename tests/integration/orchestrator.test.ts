@@ -23,24 +23,32 @@ describeDocker("Integration: Orchestrator", () => {
     for (const id of createdContainerIds.splice(0)) {
       try {
         await docker.getContainer(id).stop({ t: 1 });
-      } catch { /* may not be running */ }
+      } catch {
+        /* may not be running */
+      }
       try {
         await docker.getContainer(id).remove({ force: true });
-      } catch { /* may not exist */ }
+      } catch {
+        /* may not exist */
+      }
     }
 
     // Clean up volumes
     for (const name of createdVolumeNames.splice(0)) {
       try {
         await docker.getVolume(name).remove({ force: true });
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
 
     // Clean up networks
     for (const id of createdNetworkIds.splice(0)) {
       try {
         await docker.getNetwork(id).remove();
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   });
 

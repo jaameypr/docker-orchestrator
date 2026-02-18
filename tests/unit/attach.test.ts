@@ -27,9 +27,10 @@ function createMockDocker(options?: {
   };
 
   const container = {
-    inspect: options?.exists === false
-      ? vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 }))
-      : vi.fn().mockResolvedValue(inspectData),
+    inspect:
+      options?.exists === false
+        ? vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 }))
+        : vi.fn().mockResolvedValue(inspectData),
     attach: vi.fn().mockResolvedValue(stream),
   };
 
@@ -65,25 +66,25 @@ describe("attachContainer", () => {
   it("should throw ContainerNotFoundError when container does not exist", async () => {
     const { docker } = createMockDocker({ exists: false });
 
-    await expect(
-      attachContainer(docker as never, "nonexistent"),
-    ).rejects.toThrow(ContainerNotFoundError);
+    await expect(attachContainer(docker as never, "nonexistent")).rejects.toThrow(
+      ContainerNotFoundError,
+    );
   });
 
   it("should throw ContainerNotRunningError when container is not running", async () => {
     const { docker } = createMockDocker({ running: false });
 
-    await expect(
-      attachContainer(docker as never, "stopped-container"),
-    ).rejects.toThrow(ContainerNotRunningError);
+    await expect(attachContainer(docker as never, "stopped-container")).rejects.toThrow(
+      ContainerNotRunningError,
+    );
   });
 
   it("should throw StdinNotAvailableError when OpenStdin is false", async () => {
     const { docker } = createMockDocker({ openStdin: false });
 
-    await expect(
-      attachContainer(docker as never, "no-stdin-container"),
-    ).rejects.toThrow(StdinNotAvailableError);
+    await expect(attachContainer(docker as never, "no-stdin-container")).rejects.toThrow(
+      StdinNotAvailableError,
+    );
   });
 
   it("should not check OpenStdin when stdin option is false", async () => {

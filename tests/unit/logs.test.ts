@@ -1,10 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { PassThrough } from "node:stream";
-import {
-  getContainerLogs,
-  tailLogs,
-  streamLogs,
-} from "../../src/monitoring/logs.js";
+import { getContainerLogs, tailLogs, streamLogs } from "../../src/monitoring/logs.js";
 import { ContainerNotFoundError } from "../../src/errors/base.js";
 import type { LogEntry } from "../../src/types/logs.js";
 import type Docker from "dockerode";
@@ -106,9 +102,9 @@ describe("getContainerLogs (one-shot)", () => {
       logs: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(
-      getContainerLogs(docker, "nonexistent", { follow: false }),
-    ).rejects.toThrow(ContainerNotFoundError);
+    await expect(getContainerLogs(docker, "nonexistent", { follow: false })).rejects.toThrow(
+      ContainerNotFoundError,
+    );
   });
 
   it("should only return last N lines with tail option", async () => {
@@ -127,9 +123,7 @@ describe("getContainerLogs (one-shot)", () => {
     await resultPromise;
 
     // Verify tail was passed to Docker API
-    expect(logsFn).toHaveBeenCalledWith(
-      expect.objectContaining({ tail: "5" }),
-    );
+    expect(logsFn).toHaveBeenCalledWith(expect.objectContaining({ tail: "5" }));
   });
 });
 
@@ -156,9 +150,12 @@ describe("getContainerLogs (follow mode)", () => {
 
     // Emit data
     const entries: LogEntry[] = [];
-    (logStream as { on: (event: string, cb: (entry: LogEntry) => void) => void }).on("data", (entry: LogEntry) => {
-      entries.push(entry);
-    });
+    (logStream as { on: (event: string, cb: (entry: LogEntry) => void) => void }).on(
+      "data",
+      (entry: LogEntry) => {
+        entries.push(entry);
+      },
+    );
 
     stream.write(buildFrame(1, "live log\n"));
 
@@ -182,9 +179,12 @@ describe("getContainerLogs (follow mode)", () => {
     });
 
     const entries: LogEntry[] = [];
-    (logStream as { on: (event: string, cb: (entry: LogEntry) => void) => void }).on("data", (entry: LogEntry) => {
-      entries.push(entry);
-    });
+    (logStream as { on: (event: string, cb: (entry: LogEntry) => void) => void }).on(
+      "data",
+      (entry: LogEntry) => {
+        entries.push(entry);
+      },
+    );
 
     stream.write(buildFrame(1, "before stop\n"));
     await new Promise((resolve) => setTimeout(resolve, 20));

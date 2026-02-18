@@ -86,9 +86,9 @@ describe("createNetwork", () => {
   it("should throw NetworkAlreadyExistsError for duplicate name", async () => {
     docker.listNetworks.mockResolvedValue([{ Name: "existing-net" }]);
 
-    await expect(
-      createNetwork(docker, { name: "existing-net" }),
-    ).rejects.toThrow(NetworkAlreadyExistsError);
+    await expect(createNetwork(docker, { name: "existing-net" })).rejects.toThrow(
+      NetworkAlreadyExistsError,
+    );
   });
 
   it("should pass labels to Docker API", async () => {
@@ -133,14 +133,12 @@ describe("removeNetwork", () => {
     docker.getNetwork.mockReturnValue({
       inspect: vi.fn().mockResolvedValue({
         Containers: {
-          "abc123": { Name: "my-container" },
+          abc123: { Name: "my-container" },
         },
       }),
     });
 
-    await expect(removeNetwork(docker, "net-123")).rejects.toThrow(
-      ContainerStillConnectedError,
-    );
+    await expect(removeNetwork(docker, "net-123")).rejects.toThrow(ContainerStillConnectedError);
   });
 
   it("should force remove even with connected containers", async () => {
@@ -154,14 +152,12 @@ describe("removeNetwork", () => {
 
   it("should throw NetworkNotFoundError for 404", async () => {
     docker.getNetwork.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(removeNetwork(docker, "nonexistent")).rejects.toThrow(
-      NetworkNotFoundError,
-    );
+    await expect(removeNetwork(docker, "nonexistent")).rejects.toThrow(NetworkNotFoundError);
   });
 });
 
@@ -186,7 +182,7 @@ describe("inspectNetwork", () => {
           Config: [{ Subnet: "172.18.0.0/16", Gateway: "172.18.0.1" }],
         },
         Containers: {
-          "abc123": {
+          abc123: {
             Name: "web-app",
             IPv4Address: "172.18.0.2/16",
             MacAddress: "02:42:ac:12:00:02",
@@ -208,14 +204,12 @@ describe("inspectNetwork", () => {
 
   it("should throw NetworkNotFoundError for 404", async () => {
     docker.getNetwork.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(inspectNetwork(docker, "nonexistent")).rejects.toThrow(
-      NetworkNotFoundError,
-    );
+    await expect(inspectNetwork(docker, "nonexistent")).rejects.toThrow(NetworkNotFoundError);
   });
 });
 

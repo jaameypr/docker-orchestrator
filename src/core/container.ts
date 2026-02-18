@@ -67,11 +67,7 @@ export async function stopContainer(docker: Docker, id: string, timeout = 10): P
 /**
  * Removes a container, optionally by force.
  */
-export async function removeContainer(
-  docker: Docker,
-  id: string,
-  force = false,
-): Promise<void> {
+export async function removeContainer(docker: Docker, id: string, force = false): Promise<void> {
   try {
     await docker.getContainer(id).remove({ force });
   } catch (err) {
@@ -127,10 +123,7 @@ export async function inspectContainer(
 /**
  * Lists containers. When `all` is true, includes stopped containers.
  */
-export async function listContainers(
-  docker: Docker,
-  all = false,
-): Promise<ContainerInfo[]> {
+export async function listContainers(docker: Docker, all = false): Promise<ContainerInfo[]> {
   try {
     const containers = await docker.listContainers({ all });
     return containers.map((c) => ({

@@ -20,22 +20,15 @@ import type {
  * Returns null on first snapshot (no delta available).
  */
 export function calculateCpu(stats: DockerStatsRaw): CpuMetrics | null {
-  const cpuDelta =
-    stats.cpu_stats.cpu_usage.total_usage -
-    stats.precpu_stats.cpu_usage.total_usage;
+  const cpuDelta = stats.cpu_stats.cpu_usage.total_usage - stats.precpu_stats.cpu_usage.total_usage;
 
-  const systemDelta =
-    stats.cpu_stats.system_cpu_usage -
-    stats.precpu_stats.system_cpu_usage;
+  const systemDelta = stats.cpu_stats.system_cpu_usage - stats.precpu_stats.system_cpu_usage;
 
   if (systemDelta <= 0 || cpuDelta < 0) {
     return null;
   }
 
-  const cores =
-    stats.cpu_stats.online_cpus ??
-    stats.cpu_stats.cpu_usage.percpu_usage?.length ??
-    1;
+  const cores = stats.cpu_stats.online_cpus ?? stats.cpu_stats.cpu_usage.percpu_usage?.length ?? 1;
 
   const percent = (cpuDelta / systemDelta) * cores * 100;
 
@@ -65,8 +58,7 @@ export function calculateMemory(stats: DockerStatsRaw): MemoryMetrics {
   }
 
   const usedBytes = memStats.usage - cache;
-  const percent =
-    limit > 0 ? Math.round((usedBytes / limit) * 100 * 100) / 100 : 0;
+  const percent = limit > 0 ? Math.round((usedBytes / limit) * 100 * 100) / 100 : 0;
 
   return { usedBytes, limitBytes: limit, percent };
 }
@@ -166,10 +158,7 @@ export function computeMetrics(
  * Retrieves a single metrics snapshot for a container.
  * Internally fetches a stats object that includes precpu_stats for delta calculation.
  */
-export async function getMetrics(
-  docker: Docker,
-  containerId: string,
-): Promise<ContainerMetrics> {
+export async function getMetrics(docker: Docker, containerId: string): Promise<ContainerMetrics> {
   const container = docker.getContainer(containerId);
 
   let stats: DockerStatsRaw;

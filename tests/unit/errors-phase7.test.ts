@@ -74,20 +74,12 @@ describe("Phase 7 Error Classes", () => {
 
   describe("isDockerOrchestratorError type guard", () => {
     it("should return true for DockerOrchestratorError", () => {
-      expect(
-        isDockerOrchestratorError(
-          new DockerOrchestratorError("msg", "CODE"),
-        ),
-      ).toBe(true);
+      expect(isDockerOrchestratorError(new DockerOrchestratorError("msg", "CODE"))).toBe(true);
     });
 
     it("should return true for subclasses", () => {
-      expect(isDockerOrchestratorError(new ConnectionError("fail"))).toBe(
-        true,
-      );
-      expect(
-        isDockerOrchestratorError(new ContainerNotFoundError("abc")),
-      ).toBe(true);
+      expect(isDockerOrchestratorError(new ConnectionError("fail"))).toBe(true);
+      expect(isDockerOrchestratorError(new ContainerNotFoundError("abc"))).toBe(true);
     });
 
     it("should return false for plain Error", () => {
@@ -127,15 +119,11 @@ describe("Phase 7 Error Classes", () => {
     });
 
     it("should not identify VALIDATION_ERROR as transient", () => {
-      expect(isTransientError(new ValidationError("field", "invalid"))).toBe(
-        false,
-      );
+      expect(isTransientError(new ValidationError("field", "invalid"))).toBe(false);
     });
 
     it("should not identify PORT_ALREADY_IN_USE as transient", () => {
-      expect(isTransientError(new PortAlreadyInUseError(3000, 3001))).toBe(
-        false,
-      );
+      expect(isTransientError(new PortAlreadyInUseError(3000, 3001))).toBe(false);
     });
 
     it("should detect ECONNREFUSED in plain errors", () => {

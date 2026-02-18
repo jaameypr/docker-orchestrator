@@ -177,8 +177,26 @@ describe("calculateNetwork", () => {
   it("should aggregate network bytes across interfaces", () => {
     const stats = makeStats({
       networks: {
-        eth0: { rx_bytes: 1000, tx_bytes: 500, rx_packets: 10, tx_packets: 5, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 },
-        eth1: { rx_bytes: 2000, tx_bytes: 1000, rx_packets: 20, tx_packets: 10, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 },
+        eth0: {
+          rx_bytes: 1000,
+          tx_bytes: 500,
+          rx_packets: 10,
+          tx_packets: 5,
+          rx_errors: 0,
+          tx_errors: 0,
+          rx_dropped: 0,
+          tx_dropped: 0,
+        },
+        eth1: {
+          rx_bytes: 2000,
+          tx_bytes: 1000,
+          rx_packets: 20,
+          tx_packets: 10,
+          rx_errors: 0,
+          tx_errors: 0,
+          rx_dropped: 0,
+          tx_dropped: 0,
+        },
       },
     });
 
@@ -189,10 +207,32 @@ describe("calculateNetwork", () => {
 
   it("should calculate throughput from two snapshots", () => {
     const prev = makeStats({
-      networks: { eth0: { rx_bytes: 1000, tx_bytes: 500, rx_packets: 10, tx_packets: 5, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 } },
+      networks: {
+        eth0: {
+          rx_bytes: 1000,
+          tx_bytes: 500,
+          rx_packets: 10,
+          tx_packets: 5,
+          rx_errors: 0,
+          tx_errors: 0,
+          rx_dropped: 0,
+          tx_dropped: 0,
+        },
+      },
     });
     const curr = makeStats({
-      networks: { eth0: { rx_bytes: 2000, tx_bytes: 1500, rx_packets: 20, tx_packets: 15, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 } },
+      networks: {
+        eth0: {
+          rx_bytes: 2000,
+          tx_bytes: 1500,
+          rx_packets: 20,
+          tx_packets: 15,
+          rx_errors: 0,
+          tx_errors: 0,
+          rx_dropped: 0,
+          tx_dropped: 0,
+        },
+      },
     });
 
     const result = calculateNetwork(curr, prev, 1000);
@@ -306,9 +346,7 @@ describe("getMetrics", () => {
       stats: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(getMetrics(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(getMetrics(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 });
 
@@ -351,8 +389,6 @@ describe("streamMetrics", () => {
       stats: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(streamMetrics(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(streamMetrics(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 });

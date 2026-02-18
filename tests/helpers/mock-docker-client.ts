@@ -191,8 +191,7 @@ export function createMockContainer(options: MockContainerOptions = {}): MockCon
       Pid: isRunning ? pid : 0,
       ExitCode: exitCode,
       StartedAt: isRunning ? "2024-01-01T00:00:00Z" : "0001-01-01T00:00:00Z",
-      FinishedAt:
-        state === "exited" ? "2024-01-01T01:00:00Z" : "0001-01-01T00:00:00Z",
+      FinishedAt: state === "exited" ? "2024-01-01T01:00:00Z" : "0001-01-01T00:00:00Z",
     },
     NetworkSettings: {
       IPAddress: ipAddress,
@@ -291,7 +290,9 @@ export function createMockVolume(
 /**
  * Creates a mock exec instance.
  */
-export function createMockExec(id = "mock-exec-" + Math.random().toString(36).slice(2, 10)): MockExec {
+export function createMockExec(
+  id = "mock-exec-" + Math.random().toString(36).slice(2, 10),
+): MockExec {
   return {
     id,
     start: vi.fn(),

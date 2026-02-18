@@ -63,9 +63,7 @@ function createMockContainer(
   };
 }
 
-function createMockDocker(options?: {
-  containers?: ReturnType<typeof createMockContainer>[];
-}) {
+function createMockDocker(options?: { containers?: ReturnType<typeof createMockContainer>[] }) {
   const containers = options?.containers ?? [createMockContainer("abc123def456")];
   let containerIdx = 0;
 
@@ -75,11 +73,11 @@ function createMockDocker(options?: {
     }),
     pull: vi.fn().mockReturnValue(Promise.resolve({} as NodeJS.ReadableStream)),
     modem: {
-      followProgress: vi.fn().mockImplementation(
-        (_stream: unknown, onFinish: (err: Error | null) => void) => {
+      followProgress: vi
+        .fn()
+        .mockImplementation((_stream: unknown, onFinish: (err: Error | null) => void) => {
           onFinish(null);
-        },
-      ),
+        }),
     },
     createContainer: vi.fn().mockImplementation(() => {
       const c = containers[containerIdx % containers.length];
@@ -90,9 +88,9 @@ function createMockDocker(options?: {
       return containers.find((c) => c.id === id) ?? containers[0];
     }),
     getVolume: vi.fn().mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     }),
     createVolume: vi.fn().mockResolvedValue({ Name: "test-vol" }),
     listNetworks: vi.fn().mockResolvedValue([]),
@@ -124,10 +122,12 @@ describe("Orchestrator - Preset Integration", () => {
       const docker = createMockDocker();
       const orch = new Orchestrator(docker as never);
 
-      orch.presets.register(definePreset({
-        name: "test-preset",
-        config: { image: "nginx:latest" },
-      }));
+      orch.presets.register(
+        definePreset({
+          name: "test-preset",
+          config: { image: "nginx:latest" },
+        }),
+      );
 
       expect(orch.presets.has("test-preset")).toBe(true);
       expect(orch.presets.get("test-preset").config).toEqual({ image: "nginx:latest" });
@@ -140,13 +140,15 @@ describe("Orchestrator - Preset Integration", () => {
       const docker = createMockDocker({ containers: [container] });
       const orch = new Orchestrator(docker as never);
 
-      orch.presets.register(definePreset({
-        name: "my-preset",
-        config: {
-          image: "nginx:latest",
-          env: { PORT: "80", MODE: "default" },
-        },
-      }));
+      orch.presets.register(
+        definePreset({
+          name: "my-preset",
+          config: {
+            image: "nginx:latest",
+            env: { PORT: "80", MODE: "default" },
+          },
+        }),
+      );
 
       const result = await orch.deploy({
         image: "nginx:latest",
@@ -167,10 +169,12 @@ describe("Orchestrator - Preset Integration", () => {
       const docker = createMockDocker({ containers: [container] });
       const orch = new Orchestrator(docker as never);
 
-      orch.presets.register(definePreset({
-        name: "labeled-preset",
-        config: { image: "alpine:latest" },
-      }));
+      orch.presets.register(
+        definePreset({
+          name: "labeled-preset",
+          config: { image: "alpine:latest" },
+        }),
+      );
 
       await orch.deploy({
         image: "alpine:latest",

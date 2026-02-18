@@ -68,10 +68,7 @@ export class ResilientStream extends EventEmitter<ResilientStreamEvents> {
   // Buffer for backpressure
   private buffer: unknown[] = [];
 
-  constructor(
-    factory: StreamFactory,
-    options?: Partial<ResilientStreamOptions>,
-  ) {
+  constructor(factory: StreamFactory, options?: Partial<ResilientStreamOptions>) {
     super();
     this.factory = factory;
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -180,16 +177,11 @@ export class ResilientStream extends EventEmitter<ResilientStreamEvents> {
     if (this.destroyed || this.reconnecting) return;
     this.reconnecting = true;
 
-    for (
-      let attempt = 0;
-      attempt < this.options.maxReconnectAttempts;
-      attempt++
-    ) {
+    for (let attempt = 0; attempt < this.options.maxReconnectAttempts; attempt++) {
       if (this.destroyed) break;
 
       const delay = Math.min(
-        this.options.initialReconnectDelay *
-          Math.pow(this.options.backoffMultiplier, attempt),
+        this.options.initialReconnectDelay * Math.pow(this.options.backoffMultiplier, attempt),
         this.options.maxReconnectDelay,
       );
 
@@ -243,7 +235,11 @@ export class ResilientStream extends EventEmitter<ResilientStreamEvents> {
       }
     }, this.options.heartbeatTimeout);
 
-    if (this.heartbeatTimer && typeof this.heartbeatTimer === "object" && "unref" in this.heartbeatTimer) {
+    if (
+      this.heartbeatTimer &&
+      typeof this.heartbeatTimer === "object" &&
+      "unref" in this.heartbeatTimer
+    ) {
       this.heartbeatTimer.unref();
     }
   }

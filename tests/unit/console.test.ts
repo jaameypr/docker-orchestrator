@@ -7,11 +7,7 @@ import { ConsoleDisconnectedError } from "../../src/errors/base.js";
 // Mock Docker
 // ---------------------------------------------------------------------------
 
-function createMockDocker(options?: {
-  running?: boolean;
-  openStdin?: boolean;
-  tty?: boolean;
-}) {
+function createMockDocker(options?: { running?: boolean; openStdin?: boolean; tty?: boolean }) {
   const stream = new PassThrough();
   const inspectData = {
     State: { Running: options?.running ?? true },

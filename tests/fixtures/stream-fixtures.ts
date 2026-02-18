@@ -51,7 +51,11 @@ export const largeLogOutput = Buffer.concat(
 export const emptyLogOutput = Buffer.alloc(0);
 
 /** Fragmented frame: header without complete payload (for testing reassembly). */
-export function createFragmentedFrames(): { fragment1: Buffer; fragment2: Buffer; complete: Buffer } {
+export function createFragmentedFrames(): {
+  fragment1: Buffer;
+  fragment2: Buffer;
+  complete: Buffer;
+} {
   const payload = "This is a fragmented message\n";
   const complete = makeFrame(StreamType.Stdout, payload);
 
@@ -148,11 +152,8 @@ export const volumeCreateEvent = JSON.stringify({
 });
 
 /** Multiple events as a newline-delimited stream. */
-export const multipleEventsStream = [
-  containerStartEvent,
-  containerStopEvent,
-  containerDieEvent,
-].join("\n") + "\n";
+export const multipleEventsStream =
+  [containerStartEvent, containerStopEvent, containerDieEvent].join("\n") + "\n";
 
 /** Health status event. */
 export const healthStatusEvent = JSON.stringify({
@@ -163,7 +164,7 @@ export const healthStatusEvent = JSON.stringify({
     Attributes: {
       name: "test-container",
       image: "alpine:latest",
-      "health_status": "healthy",
+      health_status: "healthy",
     },
   },
   time: 1705312500,
@@ -193,7 +194,16 @@ export const statsSnapshot1 = JSON.stringify({
     stats: { cache: 5242880, inactive_file: 0 },
   },
   networks: {
-    eth0: { rx_bytes: 1000, tx_bytes: 500, rx_packets: 10, tx_packets: 5, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 },
+    eth0: {
+      rx_bytes: 1000,
+      tx_bytes: 500,
+      rx_packets: 10,
+      tx_packets: 5,
+      rx_errors: 0,
+      tx_errors: 0,
+      rx_dropped: 0,
+      tx_dropped: 0,
+    },
   },
   blkio_stats: {
     io_service_bytes_recursive: [
@@ -222,7 +232,16 @@ export const statsSnapshot2 = JSON.stringify({
     stats: { cache: 5242880, inactive_file: 0 },
   },
   networks: {
-    eth0: { rx_bytes: 5000, tx_bytes: 3000, rx_packets: 50, tx_packets: 30, rx_errors: 0, tx_errors: 0, rx_dropped: 0, tx_dropped: 0 },
+    eth0: {
+      rx_bytes: 5000,
+      tx_bytes: 3000,
+      rx_packets: 50,
+      tx_packets: 30,
+      rx_errors: 0,
+      tx_errors: 0,
+      rx_dropped: 0,
+      tx_dropped: 0,
+    },
   },
   blkio_stats: {
     io_service_bytes_recursive: [

@@ -12,7 +12,11 @@ function createMockDocker() {
   };
 }
 
-function makeContainerEvent(action: string, containerId = "abc123", name = "test-container"): string {
+function makeContainerEvent(
+  action: string,
+  containerId = "abc123",
+  name = "test-container",
+): string {
   return JSON.stringify({
     Type: "container",
     Action: action,

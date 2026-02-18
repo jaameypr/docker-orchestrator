@@ -72,19 +72,20 @@ function createMockDocker(options?: {
 
   const mock = {
     getImage: vi.fn().mockReturnValue({
-      inspect: options?.imageExists === false
-        ? vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 }))
-        : vi.fn().mockResolvedValue({ Id: "sha256:abc123" }),
+      inspect:
+        options?.imageExists === false
+          ? vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 }))
+          : vi.fn().mockResolvedValue({ Id: "sha256:abc123" }),
     }),
     pull: vi.fn().mockImplementation((_name: string) => {
       return Promise.resolve({} as NodeJS.ReadableStream);
     }),
     modem: {
-      followProgress: vi.fn().mockImplementation(
-        (_stream: unknown, onFinish: (err: Error | null) => void) => {
+      followProgress: vi
+        .fn()
+        .mockImplementation((_stream: unknown, onFinish: (err: Error | null) => void) => {
           onFinish(null);
-        },
-      ),
+        }),
     },
     createContainer: options?.createFail
       ? vi.fn().mockRejectedValue(new Error("create failed"))
@@ -98,9 +99,9 @@ function createMockDocker(options?: {
       return c;
     }),
     getVolume: vi.fn().mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     }),
     createVolume: vi.fn().mockResolvedValue({ Name: "test-vol" }),
     listNetworks: vi.fn().mockResolvedValue([]),
@@ -154,9 +155,8 @@ describe("Orchestrator", () => {
       const orch = new Orchestrator(docker as never);
 
       const steps: string[] = [];
-      const result = await orch.deploy(
-        { image: "alpine:3.18", name: "test-deploy" },
-        (step) => steps.push(step),
+      const result = await orch.deploy({ image: "alpine:3.18", name: "test-deploy" }, (step) =>
+        steps.push(step),
       );
 
       expect(result.containerId).toBe("abc123def456");
@@ -180,10 +180,7 @@ describe("Orchestrator", () => {
       const orch = new Orchestrator(docker as never);
 
       const steps: string[] = [];
-      await orch.deploy(
-        { image: "alpine:3.18", name: "test-pull" },
-        (step) => steps.push(step),
-      );
+      await orch.deploy({ image: "alpine:3.18", name: "test-pull" }, (step) => steps.push(step));
 
       expect(steps).toContain("pull");
     });
@@ -192,9 +189,9 @@ describe("Orchestrator", () => {
       const docker = createMockDocker({ createFail: true });
       const orch = new Orchestrator(docker as never);
 
-      await expect(
-        orch.deploy({ image: "alpine:3.18", name: "test-fail" }),
-      ).rejects.toThrow(DeploymentFailedError);
+      await expect(orch.deploy({ image: "alpine:3.18", name: "test-fail" })).rejects.toThrow(
+        DeploymentFailedError,
+      );
     });
 
     it("should throw DeploymentFailedError on start failure and clean up", async () => {
@@ -204,9 +201,9 @@ describe("Orchestrator", () => {
       const docker = createMockDocker({ containers: [container] });
       const orch = new Orchestrator(docker as never);
 
-      await expect(
-        orch.deploy({ image: "alpine:3.18", name: "test-start-fail" }),
-      ).rejects.toThrow(DeploymentFailedError);
+      await expect(orch.deploy({ image: "alpine:3.18", name: "test-start-fail" })).rejects.toThrow(
+        DeploymentFailedError,
+      );
 
       // Container should have been cleaned up
       expect(container.remove).toHaveBeenCalled();
@@ -345,10 +342,7 @@ describe("Orchestrator", () => {
 
   describe("destroyMany", () => {
     it("should destroy multiple containers", async () => {
-      const containers = [
-        createMockContainer("aaa111"),
-        createMockContainer("bbb222"),
-      ];
+      const containers = [createMockContainer("aaa111"), createMockContainer("bbb222")];
       const docker = createMockDocker({ containers });
       const orch = new Orchestrator(docker as never);
 

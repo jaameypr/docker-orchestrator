@@ -17,21 +17,13 @@ describe("Timeout", () => {
 
   describe("withTimeout()", () => {
     it("should resolve fast operations without timeout", async () => {
-      const result = await withTimeout(
-        Promise.resolve("fast"),
-        1000,
-        "test",
-      );
+      const result = await withTimeout(Promise.resolve("fast"), 1000, "test");
       expect(result).toBe("fast");
     });
 
     it("should throw TimeoutError for slow operations", async () => {
-      const slowPromise = new Promise((resolve) =>
-        setTimeout(resolve, 5000),
-      );
-      await expect(
-        withTimeout(slowPromise, 50, "slow-op"),
-      ).rejects.toThrow(TimeoutError);
+      const slowPromise = new Promise((resolve) => setTimeout(resolve, 5000));
+      await expect(withTimeout(slowPromise, 50, "slow-op")).rejects.toThrow(TimeoutError);
 
       try {
         await withTimeout(slowPromise, 50, "slow-op");
@@ -47,33 +39,19 @@ describe("Timeout", () => {
 
     it("should propagate original errors", async () => {
       const failPromise = Promise.reject(new Error("original fail"));
-      await expect(
-        withTimeout(failPromise, 1000, "test"),
-      ).rejects.toThrow("original fail");
+      await expect(withTimeout(failPromise, 1000, "test")).rejects.toThrow("original fail");
     });
 
     it("should handle zero or negative timeout (no timeout)", async () => {
-      const result = await withTimeout(
-        Promise.resolve("ok"),
-        0,
-        "test",
-      );
+      const result = await withTimeout(Promise.resolve("ok"), 0, "test");
       expect(result).toBe("ok");
 
-      const result2 = await withTimeout(
-        Promise.resolve("ok2"),
-        -1,
-        "test",
-      );
+      const result2 = await withTimeout(Promise.resolve("ok2"), -1, "test");
       expect(result2).toBe("ok2");
     });
 
     it("should not leave zombie timers after resolution", async () => {
-      const result = await withTimeout(
-        Promise.resolve("done"),
-        100,
-        "test",
-      );
+      const result = await withTimeout(Promise.resolve("done"), 100, "test");
       expect(result).toBe("done");
       // If timers leaked, the test framework would detect them
     });

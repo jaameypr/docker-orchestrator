@@ -91,9 +91,7 @@ describe("buildContainerConfig", () => {
       ports: [{ container: 80 }],
     });
 
-    expect(result.HostConfig?.PortBindings?.["80/tcp"]).toEqual([
-      { HostPort: "" },
-    ]);
+    expect(result.HostConfig?.PortBindings?.["80/tcp"]).toEqual([{ HostPort: "" }]);
   });
 
   it("should configure volume binds", () => {
@@ -105,10 +103,7 @@ describe("buildContainerConfig", () => {
       ],
     });
 
-    expect(result.HostConfig?.Binds).toEqual([
-      "/host/data:/data",
-      "/host/config:/config:ro",
-    ]);
+    expect(result.HostConfig?.Binds).toEqual(["/host/data:/data", "/host/config:/config:ro"]);
   });
 
   it("should set hostname from name when hostname not provided", () => {

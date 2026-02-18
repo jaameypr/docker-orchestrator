@@ -1,11 +1,7 @@
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { existsSync } from "node:fs";
 import Docker from "dockerode";
-import {
-  createContainer,
-  startContainer,
-  removeContainer,
-} from "../../src/core/container.js";
+import { createContainer, startContainer, removeContainer } from "../../src/core/container.js";
 import { pullImage, imageExists } from "../../src/core/image.js";
 import { buildContainerConfig } from "../../src/builders/config-builder.js";
 import { getAssignedPorts, checkPortAvailable } from "../../src/builders/port-mapper.js";
@@ -32,7 +28,9 @@ describeDocker("Integration: Port Mapping", () => {
     for (const id of createdContainers) {
       try {
         await removeContainer(docker, id, true);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   });
 

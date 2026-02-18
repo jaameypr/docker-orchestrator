@@ -74,9 +74,7 @@ export function resolveDependencyOrder(
 
   if (order.length !== Object.keys(containers).length) {
     // Find the cycle
-    const remaining = Object.keys(containers).filter(
-      (n) => !order.includes(n),
-    );
+    const remaining = Object.keys(containers).filter((n) => !order.includes(n));
     throw new DependencyResolutionError(remaining);
   }
 
@@ -133,7 +131,10 @@ export async function deployStack(
         if (!exists) {
           await createNetwork(docker, {
             name: fullNetName,
-            driver: netConfig.driver === "host" || netConfig.driver === "none" ? "bridge" : netConfig.driver,
+            driver:
+              netConfig.driver === "host" || netConfig.driver === "none"
+                ? "bridge"
+                : netConfig.driver,
             internal: netConfig.internal,
             labels: {
               [STACK_LABEL]: config.name,
@@ -160,9 +161,7 @@ export async function deployStack(
 
     for (let i = 0; i < scale; i++) {
       const instanceName =
-        scale > 1
-          ? `${config.name}_${serviceName}_${i + 1}`
-          : `${config.name}_${serviceName}`;
+        scale > 1 ? `${config.name}_${serviceName}_${i + 1}` : `${config.name}_${serviceName}`;
 
       // Build container config from service config
       const containerConfig: ContainerConfig = {

@@ -1,4 +1,1 @@
-export type {
-  ShutdownOptions,
-  CleanupCallback,
-} from "../utils/shutdown.js";
+export type { ShutdownOptions, CleanupCallback } from "../utils/shutdown.js";

@@ -96,7 +96,9 @@ describe("extractContainerConfig", () => {
 
   it("should throw ContainerNotFoundError for 404", async () => {
     docker.getContainer.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
     await expect(extractContainerConfig(docker, "nonexistent")).rejects.toThrow(
@@ -329,7 +331,8 @@ describe("recreateContainer", () => {
     const oldContainer = {
       inspect: vi.fn().mockResolvedValue(fakeInspectData),
       stop: vi.fn().mockResolvedValue(undefined),
-      rename: vi.fn()
+      rename: vi
+        .fn()
         .mockResolvedValueOnce(undefined) // First rename succeeds
         .mockRejectedValueOnce(new Error("rename failed")), // Rollback rename fails
       start: vi.fn().mockResolvedValue(undefined),

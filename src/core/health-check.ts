@@ -67,10 +67,7 @@ export async function resolveHostPort(
   } catch (err) {
     const error = err as { statusCode?: number };
     if (error.statusCode === 404) {
-      throw new ContainerNotFoundError(
-        containerId,
-        err instanceof Error ? err : undefined,
-      );
+      throw new ContainerNotFoundError(containerId, err instanceof Error ? err : undefined);
     }
     throw mapDockerError(err, { containerId });
   }
@@ -216,8 +213,7 @@ export async function waitForHealthy(
     try {
       healthy = await performCheck(docker, containerId, parsed);
     } catch (err) {
-      lastError =
-        err instanceof Error ? err.message : String(err);
+      lastError = err instanceof Error ? err.message : String(err);
     }
 
     if (healthy) {
@@ -286,11 +282,11 @@ async function performCheck(
   }
 }
 
-async function performDockerNativeCheck(
-  docker: Docker,
-  containerId: string,
-): Promise<boolean> {
-  const data = (await docker.getContainer(containerId).inspect()) as unknown as Record<string, unknown>;
+async function performDockerNativeCheck(docker: Docker, containerId: string): Promise<boolean> {
+  const data = (await docker.getContainer(containerId).inspect()) as unknown as Record<
+    string,
+    unknown
+  >;
   const health = data.State as Record<string, unknown>;
   const healthObj = health?.Health as { Status?: string } | undefined;
 
@@ -309,11 +305,7 @@ async function performHttpCheck(
 ): Promise<boolean> {
   if (!config.httpGet) return false;
 
-  const hostPort = await resolveHostPort(
-    docker,
-    containerId,
-    config.httpGet.port,
-  );
+  const hostPort = await resolveHostPort(docker, containerId, config.httpGet.port);
   return checkHttp(
     hostPort,
     config.httpGet.path,
@@ -329,11 +321,7 @@ async function performTcpCheck(
 ): Promise<boolean> {
   if (!config.tcpSocket) return false;
 
-  const hostPort = await resolveHostPort(
-    docker,
-    containerId,
-    config.tcpSocket.port,
-  );
+  const hostPort = await resolveHostPort(docker, containerId, config.tcpSocket.port);
   return checkTcp(hostPort, config.timeout * 1000);
 }
 
@@ -345,10 +333,7 @@ function secondsToNanos(seconds: number): number {
   return seconds * 1_000_000_000;
 }
 
-function isStatusOk(
-  status: number,
-  expected?: number | number[],
-): boolean {
+function isStatusOk(status: number, expected?: number | number[]): boolean {
   if (expected === undefined) {
     // Default: 200-399
     return status >= 200 && status < 400;

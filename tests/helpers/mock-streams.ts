@@ -51,10 +51,7 @@ export function createMockWritableStream(): Writable & {
  * - Bytes 1-3: reserved (zero)
  * - Bytes 4-7: payload length (big-endian uint32)
  */
-export function createMultiplexedFrame(
-  streamType: StreamType,
-  payload: string | Buffer,
-): Buffer {
+export function createMultiplexedFrame(streamType: StreamType, payload: string | Buffer): Buffer {
   const payloadBuf = typeof payload === "string" ? Buffer.from(payload) : payload;
   const header = Buffer.alloc(8);
   header[0] = streamType;
@@ -66,9 +63,7 @@ export function createMultiplexedFrame(
  * Creates a Docker multiplexed stream with multiple frames.
  * Useful for simulating log output with both stdout and stderr.
  */
-export function createMultiplexedStream(
-  frames: Array<{ type: StreamType; data: string }>,
-): Buffer {
+export function createMultiplexedStream(frames: Array<{ type: StreamType; data: string }>): Buffer {
   const buffers = frames.map((f) => createMultiplexedFrame(f.type, f.data));
   return Buffer.concat(buffers);
 }
@@ -87,11 +82,8 @@ export function createMockLogStream(
   // Push frames asynchronously
   (async () => {
     for (const entry of entries) {
-      const streamType =
-        entry.type === "stdout" ? StreamType.Stdout : StreamType.Stderr;
-      const line = entry.timestamp
-        ? `${entry.timestamp} ${entry.message}\n`
-        : `${entry.message}\n`;
+      const streamType = entry.type === "stdout" ? StreamType.Stdout : StreamType.Stderr;
+      const line = entry.timestamp ? `${entry.timestamp} ${entry.message}\n` : `${entry.message}\n`;
       const frame = createMultiplexedFrame(streamType, line);
 
       if (delayMs > 0) {

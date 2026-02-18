@@ -18,9 +18,7 @@ export type GracefulStopConfig = z.infer<typeof GracefulStopConfigSchema>;
 // ---------------------------------------------------------------------------
 
 export const ReadyCheckConfigSchema = z.object({
-  logMatch: z
-    .union([z.string(), z.instanceof(RegExp)])
-    .optional(),
+  logMatch: z.union([z.string(), z.instanceof(RegExp)]).optional(),
   healthCheck: HealthCheckConfigSchema.optional(),
   timeout: z.number().int().positive().default(60000),
 });

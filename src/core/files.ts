@@ -4,11 +4,7 @@ import * as path from "node:path";
 import { Readable } from "node:stream";
 import * as tar from "tar-stream";
 import { mapDockerError } from "../errors/mapping.js";
-import {
-  ContainerNotFoundError,
-  FileNotFoundError,
-  PermissionError,
-} from "../errors/base.js";
+import { ContainerNotFoundError, FileNotFoundError, PermissionError } from "../errors/base.js";
 import {
   CopyToContainerOptionsSchema,
   CopyFromContainerOptionsSchema,
@@ -55,11 +51,7 @@ export function createTarFromPath(hostPath: string): Readable {
 /**
  * Recursively packs a directory into a TAR archive.
  */
-function packDirectory(
-  pack: tar.Pack,
-  rootPath: string,
-  relativePath: string,
-): void {
+function packDirectory(pack: tar.Pack, rootPath: string, relativePath: string): void {
   const fullPath = path.join(rootPath, relativePath);
   const entries = fs.readdirSync(fullPath, { withFileTypes: true });
 
@@ -111,10 +103,7 @@ function packDirectory(
 /**
  * Creates a TAR archive stream from an in-memory buffer (single file).
  */
-export function createTarFromBuffer(
-  filename: string,
-  content: Buffer | string,
-): Readable {
+export function createTarFromBuffer(filename: string, content: Buffer | string): Readable {
   const pack = tar.pack();
   const buf = typeof content === "string" ? Buffer.from(content, "utf-8") : content;
 
@@ -127,10 +116,7 @@ export function createTarFromBuffer(
 /**
  * Extracts a TAR stream to a host filesystem path.
  */
-export async function extractTarToPath(
-  tarStream: Readable,
-  destPath: string,
-): Promise<void> {
+export async function extractTarToPath(tarStream: Readable, destPath: string): Promise<void> {
   return new Promise<void>((resolve, reject) => {
     const extract = tar.extract();
 
@@ -245,7 +231,11 @@ export async function copyFromContainer(
   } catch (err) {
     const error = err as { statusCode?: number; message?: string };
     if (error.statusCode === 404) {
-      throw new FileNotFoundError(opts.sourcePath, "container", err instanceof Error ? err : undefined);
+      throw new FileNotFoundError(
+        opts.sourcePath,
+        "container",
+        err instanceof Error ? err : undefined,
+      );
     }
     if (error.message?.includes("permission denied")) {
       throw new PermissionError(opts.sourcePath, err instanceof Error ? err : undefined);

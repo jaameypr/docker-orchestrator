@@ -265,9 +265,9 @@ describe("executeCommand", () => {
       stream.end();
     }, 10);
 
-    await expect(
-      executeCommand(docker, "container-1", "nonexistent_command"),
-    ).rejects.toThrow(CommandFailedError);
+    await expect(executeCommand(docker, "container-1", "nonexistent_command")).rejects.toThrow(
+      CommandFailedError,
+    );
   });
 
   it("should throw CommandTimeoutError when command exceeds timeout", async () => {

@@ -2,11 +2,7 @@ import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { existsSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import * as path from "node:path";
 import Docker from "dockerode";
-import {
-  createContainer,
-  startContainer,
-  removeContainer,
-} from "../../src/core/container.js";
+import { createContainer, startContainer, removeContainer } from "../../src/core/container.js";
 import { executeCommand } from "../../src/core/exec.js";
 import {
   copyToContainer,
@@ -69,7 +65,9 @@ describeDocker("Integration: File Operations", () => {
   it("should copy a file from container to host", async () => {
     // First create a file in the container
     await executeCommand(docker, containerId, [
-      "sh", "-c", "echo 'from container' > /tmp/download.txt",
+      "sh",
+      "-c",
+      "echo 'from container' > /tmp/download.txt",
     ]);
 
     const destDir = path.join(TMP_DIR, "download-dest");
@@ -111,7 +109,9 @@ describeDocker("Integration: File Operations", () => {
 
   it("should read a file from container as buffer", async () => {
     await executeCommand(docker, containerId, [
-      "sh", "-c", "echo -n 'buffer test' > /tmp/bufferfile.txt",
+      "sh",
+      "-c",
+      "echo -n 'buffer test' > /tmp/bufferfile.txt",
     ]);
 
     const buffer = await readFileFromContainer(docker, containerId, "/tmp/bufferfile.txt");
@@ -128,7 +128,10 @@ describeDocker("Integration: File Operations", () => {
     });
 
     const result = await executeCommand(docker, containerId, [
-      "stat", "-c", "%a", "/tmp/perms.txt",
+      "stat",
+      "-c",
+      "%a",
+      "/tmp/perms.txt",
     ]);
     // Should have some valid permission
     expect(result.stdout.trim()).toMatch(/^\d{3,4}$/);

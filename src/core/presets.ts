@@ -35,12 +35,16 @@ export function definePreset(input: unknown): ContainerPreset {
  * by converting to a string format: "/pattern/flags".
  */
 export function serializePreset(preset: ContainerPreset): string {
-  return JSON.stringify(preset, (_, value) => {
-    if (value instanceof RegExp) {
-      return `__REGEXP__${value.source}__FLAGS__${value.flags}`;
-    }
-    return value;
-  }, 2);
+  return JSON.stringify(
+    preset,
+    (_, value) => {
+      if (value instanceof RegExp) {
+        return `__REGEXP__${value.source}__FLAGS__${value.flags}`;
+      }
+      return value;
+    },
+    2,
+  );
 }
 
 /**
@@ -100,8 +104,16 @@ export function mergePresetConfig(
 
       case "volumes": {
         // Additive merge
-        const presetVols = (presetConfig.volumes ?? []) as Array<{ host: string; container: string; readOnly?: boolean }>;
-        const userVols = userValue as Array<{ host: string; container: string; readOnly?: boolean }>;
+        const presetVols = (presetConfig.volumes ?? []) as Array<{
+          host: string;
+          container: string;
+          readOnly?: boolean;
+        }>;
+        const userVols = userValue as Array<{
+          host: string;
+          container: string;
+          readOnly?: boolean;
+        }>;
         result.volumes = [...presetVols, ...userVols];
         break;
       }

@@ -3,10 +3,7 @@ import type Dockerode from "dockerode";
 import { PortMappingInputSchema } from "../types/ports.js";
 import { MountInputSchema } from "../types/mounts.js";
 import { ResourceConfigSchema } from "../types/resources.js";
-import {
-  SecurityConfigSchema,
-  SecurityPresetNameSchema,
-} from "../types/security.js";
+import { SecurityConfigSchema, SecurityPresetNameSchema } from "../types/security.js";
 import { RestartPolicySchema } from "../types/restart.js";
 import { HealthCheckConfigSchema } from "../types/health-check.js";
 import type { ConfigWarning } from "../types/warnings.js";
@@ -85,9 +82,7 @@ export const ContainerConfigSchema = z.object({
   securityProfile: SecurityPresetNameSchema.optional(),
 
   // Lifecycle
-  restartPolicy: z
-    .enum(["no", "always", "unless-stopped", "on-failure"])
-    .default("unless-stopped"),
+  restartPolicy: z.enum(["no", "always", "unless-stopped", "on-failure"]).default("unless-stopped"),
   advancedRestartPolicy: RestartPolicySchema.optional(),
   stopTimeout: z.number().int().positive().default(10),
   healthCheck: HealthCheckConfigSchema.optional(),
@@ -154,9 +149,7 @@ export interface BuildContainerConfigResult {
  *
  * Supports partial config — only set fields override defaults.
  */
-export function buildContainerConfig(
-  input: ContainerConfig,
-): BuildContainerConfigResult {
+export function buildContainerConfig(input: ContainerConfig): BuildContainerConfigResult {
   const config = ContainerConfigSchema.parse(input);
   const warnings: ConfigWarning[] = [];
 
@@ -176,9 +169,7 @@ export function buildContainerConfig(
   }
 
   // Build env array
-  const env = config.env
-    ? Object.entries(config.env).map(([k, v]) => `${k}=${v}`)
-    : undefined;
+  const env = config.env ? Object.entries(config.env).map(([k, v]) => `${k}=${v}`) : undefined;
 
   // Build port bindings and exposed ports (legacy format)
   let exposedPorts: Record<string, object> = {};
@@ -241,20 +232,14 @@ export function buildContainerConfig(
   let resourceHostConfig: Record<string, unknown> = {};
   if (config.resources) {
     warnings.push(...validateResourceLimits(config.resources));
-    resourceHostConfig = buildResourceHostConfig(config.resources) as Record<
-      string,
-      unknown
-    >;
+    resourceHostConfig = buildResourceHostConfig(config.resources) as Record<string, unknown>;
   }
 
   // Phase 5: Security
   let securityHostConfig: Record<string, unknown> = {};
   let userField: string | undefined;
   if (config.securityProfile) {
-    const resolved = applySecurityPreset(
-      config.securityProfile,
-      config.security,
-    );
+    const resolved = applySecurityPreset(config.securityProfile, config.security);
     if (resolved.User) userField = resolved.User;
     securityHostConfig = { ...resolved };
     if ("User" in securityHostConfig) delete securityHostConfig.User;
@@ -282,9 +267,7 @@ export function buildContainerConfig(
 
   // Production mode warnings
   if (config.production) {
-    warnings.push(
-      ...validateProductionConfig(config.resources, config.security),
-    );
+    warnings.push(...validateProductionConfig(config.resources, config.security));
   }
 
   // Phase 6: Health check → Docker native (exec type only)
@@ -307,8 +290,7 @@ export function buildContainerConfig(
 
   // Build the final HostConfig by merging all sources
   const hostConfig: Record<string, unknown> = {
-    PortBindings:
-      Object.keys(portBindings).length > 0 ? portBindings : undefined,
+    PortBindings: Object.keys(portBindings).length > 0 ? portBindings : undefined,
     Binds: binds.length > 0 ? binds : undefined,
     Mounts: dockerMounts,
     RestartPolicy: restartPolicyObj,
@@ -324,15 +306,13 @@ export function buildContainerConfig(
     Env: env,
     Cmd: config.cmd,
     Entrypoint: config.entrypoint,
-    ExposedPorts:
-      Object.keys(exposedPorts).length > 0 ? exposedPorts : undefined,
+    ExposedPorts: Object.keys(exposedPorts).length > 0 ? exposedPorts : undefined,
     Hostname: config.hostname ?? config.name,
     Domainname: config.domainName,
     WorkingDir: config.workingDir,
     Labels: config.labels,
     HostConfig: hostConfig as Dockerode.ContainerCreateOptions["HostConfig"],
-    NetworkingConfig:
-      networkingConfig as Dockerode.ContainerCreateOptions["NetworkingConfig"],
+    NetworkingConfig: networkingConfig as Dockerode.ContainerCreateOptions["NetworkingConfig"],
   };
 
   // Interactive / TTY
@@ -350,7 +330,7 @@ export function buildContainerConfig(
         level: "warn",
         code: "tty-without-interactive",
         message:
-          'tty: true is set without interactive: true. The TTY will be allocated but stdin will not be attached. Set interactive: true to enable stdin.',
+          "tty: true is set without interactive: true. The TTY will be allocated but stdin will not be attached. Set interactive: true to enable stdin.",
       });
     }
   }
@@ -386,10 +366,7 @@ export function diffConfigs(
   newConfig: Partial<ContainerConfig>,
 ): ConfigDiff[] {
   const diffs: ConfigDiff[] = [];
-  const allKeys = new Set([
-    ...Object.keys(oldConfig),
-    ...Object.keys(newConfig),
-  ]);
+  const allKeys = new Set([...Object.keys(oldConfig), ...Object.keys(newConfig)]);
 
   for (const key of allKeys) {
     const oldVal = (oldConfig as Record<string, unknown>)[key];

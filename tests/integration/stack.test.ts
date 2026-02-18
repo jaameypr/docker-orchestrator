@@ -18,7 +18,9 @@ describeDocker("Integration: Stack Deployment", () => {
     for (const name of stackNames.splice(0)) {
       try {
         await destroyStack(docker, name, { removeVolumes: true, timeout: 2 });
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   });
 
@@ -46,9 +48,7 @@ describeDocker("Integration: Stack Deployment", () => {
     } as StackConfig;
 
     const steps: string[] = [];
-    const result = await deployStack(docker, stackConfig, (step) =>
-      steps.push(step),
-    );
+    const result = await deployStack(docker, stackConfig, (step) => steps.push(step));
 
     expect(result.stackName).toBe(stackName);
     expect(result.services).toHaveLength(2);
@@ -114,9 +114,7 @@ describeDocker("Integration: Stack Deployment", () => {
     const networks = await docker.listNetworks({
       filters: JSON.stringify({ name: [expectedNetName] }),
     });
-    const found = networks.find(
-      (n: Record<string, unknown>) => n.Name === expectedNetName,
-    );
+    const found = networks.find((n: Record<string, unknown>) => n.Name === expectedNetName);
     expect(found).toBeDefined();
   });
 });

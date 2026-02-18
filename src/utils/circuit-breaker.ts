@@ -66,9 +66,7 @@ export class CircuitBreaker extends EventEmitter<CircuitBreakerEvents> {
 
     if (this.state === "half-open") {
       if (this.halfOpenAttempts >= this.options.halfOpenMaxAttempts) {
-        throw new CircuitOpenError(
-          "Circuit breaker is half-open – max attempts reached",
-        );
+        throw new CircuitOpenError("Circuit breaker is half-open – max attempts reached");
       }
       this.halfOpenAttempts++;
     }

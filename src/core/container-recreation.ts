@@ -49,17 +49,30 @@ export async function extractContainerConfig(
     entrypoint: (data.Config.Entrypoint as string[] | undefined) ?? null,
     hostname: data.Config.Hostname ?? "",
     exposedPorts: data.Config.ExposedPorts ?? {},
-    portBindings: (hostConfig as Record<string, unknown>).PortBindings as Record<string, Array<{ HostIp: string; HostPort: string }>> ?? {},
-    binds: (hostConfig as Record<string, unknown>).Binds as string[] ?? [],
-    mounts: ((hostConfig as Record<string, unknown>).Mounts as Array<{ Type: string; Source: string; Target: string; ReadOnly: boolean }>) ?? [],
-    networkMode: (hostConfig as Record<string, unknown>).NetworkMode as string ?? "default",
+    portBindings:
+      ((hostConfig as Record<string, unknown>).PortBindings as Record<
+        string,
+        Array<{ HostIp: string; HostPort: string }>
+      >) ?? {},
+    binds: ((hostConfig as Record<string, unknown>).Binds as string[]) ?? [],
+    mounts:
+      ((hostConfig as Record<string, unknown>).Mounts as Array<{
+        Type: string;
+        Source: string;
+        Target: string;
+        ReadOnly: boolean;
+      }>) ?? [],
+    networkMode: ((hostConfig as Record<string, unknown>).NetworkMode as string) ?? "default",
     networks: networkSettings.Networks ?? {},
-    memoryLimit: (hostConfig as Record<string, unknown>).Memory as number ?? 0,
-    cpuShares: (hostConfig as Record<string, unknown>).CpuShares as number ?? 0,
-    cpuQuota: (hostConfig as Record<string, unknown>).CpuQuota as number ?? 0,
+    memoryLimit: ((hostConfig as Record<string, unknown>).Memory as number) ?? 0,
+    cpuShares: ((hostConfig as Record<string, unknown>).CpuShares as number) ?? 0,
+    cpuQuota: ((hostConfig as Record<string, unknown>).CpuQuota as number) ?? 0,
     restartPolicy: {
-      Name: ((hostConfig as Record<string, unknown>).RestartPolicy as { Name?: string })?.Name ?? "no",
-      MaximumRetryCount: ((hostConfig as Record<string, unknown>).RestartPolicy as { MaximumRetryCount?: number })?.MaximumRetryCount ?? 0,
+      Name:
+        ((hostConfig as Record<string, unknown>).RestartPolicy as { Name?: string })?.Name ?? "no",
+      MaximumRetryCount:
+        ((hostConfig as Record<string, unknown>).RestartPolicy as { MaximumRetryCount?: number })
+          ?.MaximumRetryCount ?? 0,
     },
     labels: data.Config.Labels ?? {},
     workingDir: data.Config.WorkingDir ?? "",
@@ -170,9 +183,7 @@ export function mergeContainerConfig(
 /**
  * Converts an ExtractedContainerConfig back into Dockerode.ContainerCreateOptions.
  */
-function buildDockerodeConfig(
-  config: ExtractedContainerConfig,
-): Dockerode.ContainerCreateOptions {
+function buildDockerodeConfig(config: ExtractedContainerConfig): Dockerode.ContainerCreateOptions {
   const result: Dockerode.ContainerCreateOptions = {
     Image: config.image,
     name: config.name,
@@ -303,7 +314,8 @@ export async function recreateContainer(
     };
   } catch (recreationError) {
     // Rollback
-    const error = recreationError instanceof Error ? recreationError : new Error(String(recreationError));
+    const error =
+      recreationError instanceof Error ? recreationError : new Error(String(recreationError));
 
     try {
       await performRollback(docker, {
@@ -344,10 +356,7 @@ interface RollbackContext {
   oldWasRunning: boolean;
 }
 
-async function performRollback(
-  docker: Docker,
-  ctx: RollbackContext,
-): Promise<void> {
+async function performRollback(docker: Docker, ctx: RollbackContext): Promise<void> {
   // Stop and remove new container if it was created
   if (ctx.newContainerId) {
     try {

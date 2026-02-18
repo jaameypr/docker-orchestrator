@@ -10,9 +10,7 @@ export type DockerEventType = "container" | "image" | "volume" | "network";
  * Filter options for subscribing to Docker events.
  */
 export const EventFilterSchema = z.object({
-  type: z
-    .enum(["container", "image", "volume", "network"])
-    .optional(),
+  type: z.enum(["container", "image", "volume", "network"]).optional(),
   action: z.array(z.string()).optional(),
   containerId: z.string().optional(),
   since: z.union([z.date(), z.number()]).optional(),

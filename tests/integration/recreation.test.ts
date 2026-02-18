@@ -109,7 +109,8 @@ describeDocker("Integration: Container Recreation", () => {
 
     // Verify data persists in new container
     const dataResult = await executeCommand(docker, result.newContainerId, [
-      "cat", "/data/test.txt",
+      "cat",
+      "/data/test.txt",
     ]);
     expect(dataResult.stdout.trim()).toBe("persistent data");
 

@@ -54,7 +54,8 @@ function mapRawEvent(raw: Record<string, unknown>): DockerEvent | null {
  */
 function matchesFilter(event: DockerEvent, filter: EventFilter): boolean {
   if (filter.type && event.type !== filter.type) return false;
-  if (filter.action && filter.action.length > 0 && !filter.action.includes(event.action)) return false;
+  if (filter.action && filter.action.length > 0 && !filter.action.includes(event.action))
+    return false;
   if (filter.containerId && event.actor.id !== filter.containerId) return false;
   return true;
 }

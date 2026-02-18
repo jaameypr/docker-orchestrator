@@ -25,25 +25,16 @@ export function createDockerApiError(
 // ---------------------------------------------------------------------------
 
 /** Container already started – returned by start when container is already running. */
-export const containerAlreadyStarted = createDockerApiError(
-  304,
-  "container already started",
-);
+export const containerAlreadyStarted = createDockerApiError(304, "container already started");
 
 /** Container already stopped – returned by stop when container is already stopped. */
-export const containerAlreadyStopped = createDockerApiError(
-  304,
-  "container already stopped",
-);
+export const containerAlreadyStopped = createDockerApiError(304, "container already stopped");
 
 // ---------------------------------------------------------------------------
 // HTTP 400 – Bad Request
 // ---------------------------------------------------------------------------
 
-export const badParameterError = createDockerApiError(
-  400,
-  "bad parameter: invalid restart policy",
-);
+export const badParameterError = createDockerApiError(400, "bad parameter: invalid restart policy");
 
 // ---------------------------------------------------------------------------
 // HTTP 404 – Not Found
@@ -56,28 +47,16 @@ export const containerNotFound = createDockerApiError(
 );
 
 /** Image not found. */
-export const imageNotFound = createDockerApiError(
-  404,
-  "No such image: nonexistent:latest",
-);
+export const imageNotFound = createDockerApiError(404, "No such image: nonexistent:latest");
 
 /** Network not found. */
-export const networkNotFound = createDockerApiError(
-  404,
-  "network nonexistent-network not found",
-);
+export const networkNotFound = createDockerApiError(404, "network nonexistent-network not found");
 
 /** Volume not found. */
-export const volumeNotFound = createDockerApiError(
-  404,
-  "get test-volume: no such volume",
-);
+export const volumeNotFound = createDockerApiError(404, "get test-volume: no such volume");
 
 /** Exec not found. */
-export const execNotFound = createDockerApiError(
-  404,
-  "No such exec instance: nonexistent-exec",
-);
+export const execNotFound = createDockerApiError(404, "No such exec instance: nonexistent-exec");
 
 // ---------------------------------------------------------------------------
 // HTTP 409 – Conflict
@@ -108,10 +87,7 @@ export const volumeAlreadyExists = createDockerApiError(
 );
 
 /** Volume is in use – cannot remove. */
-export const volumeInUse = createDockerApiError(
-  409,
-  "remove test-volume: volume is in use",
-);
+export const volumeInUse = createDockerApiError(409, "remove test-volume: volume is in use");
 
 /** Container still connected to network. */
 export const containerStillConnected = createDockerApiError(
@@ -124,16 +100,10 @@ export const containerStillConnected = createDockerApiError(
 // ---------------------------------------------------------------------------
 
 /** Generic Docker daemon internal error. */
-export const internalServerError = createDockerApiError(
-  500,
-  "server error",
-);
+export const internalServerError = createDockerApiError(500, "server error");
 
 /** OOM killed error. */
-export const oomKilledError = createDockerApiError(
-  500,
-  "OOM killed",
-);
+export const oomKilledError = createDockerApiError(500, "OOM killed");
 
 // ---------------------------------------------------------------------------
 // Connection Errors
@@ -141,9 +111,7 @@ export const oomKilledError = createDockerApiError(
 
 /** Docker daemon not running / socket not accessible. */
 export function createConnectionError(): Error & { code: string } {
-  const error = new Error(
-    "connect ENOENT /var/run/docker.sock",
-  ) as Error & { code: string };
+  const error = new Error("connect ENOENT /var/run/docker.sock") as Error & { code: string };
   error.code = "ENOENT";
   return error;
 }

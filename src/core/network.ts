@@ -21,9 +21,7 @@ import {
 // ---------------------------------------------------------------------------
 
 function ipToLong(ip: string): number {
-  return ip
-    .split(".")
-    .reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
+  return ip.split(".").reduce((acc, octet) => (acc << 8) + parseInt(octet, 10), 0) >>> 0;
 }
 
 function isIpInSubnet(ip: string, cidr: string): boolean {
@@ -58,9 +56,7 @@ export async function createNetwork(
     const existing = await docker.listNetworks({
       filters: JSON.stringify({ name: [config.name] }),
     });
-    const exactMatch = existing.find(
-      (n: { Name: string }) => n.Name === config.name,
-    );
+    const exactMatch = existing.find((n: { Name: string }) => n.Name === config.name);
     if (exactMatch) {
       throw new NetworkAlreadyExistsError(config.name);
     }
@@ -83,9 +79,7 @@ export async function createNetwork(
       Driver: config.driver,
       Internal: config.internal,
       EnableIPv6: config.enableIPv6,
-      IPAM: ipamConfig.length > 0
-        ? { Driver: "default", Config: ipamConfig }
-        : undefined,
+      IPAM: ipamConfig.length > 0 ? { Driver: "default", Config: ipamConfig } : undefined,
       Labels: config.labels,
     });
 
@@ -122,9 +116,7 @@ export async function removeNetwork(
       const connectedIds = Object.keys(containers);
 
       if (connectedIds.length > 0) {
-        const names = connectedIds.map(
-          (id) => containers[id]?.Name ?? id.substring(0, 12),
-        );
+        const names = connectedIds.map((id) => containers[id]?.Name ?? id.substring(0, 12));
         throw new ContainerStillConnectedError(networkId, names);
       }
     } catch (err) {
@@ -155,10 +147,7 @@ export async function removeNetwork(
 /**
  * Returns detailed info about a network, including connected containers.
  */
-export async function inspectNetwork(
-  docker: Docker,
-  networkId: string,
-): Promise<NetworkInfo> {
+export async function inspectNetwork(docker: Docker, networkId: string): Promise<NetworkInfo> {
   try {
     const data = await docker.getNetwork(networkId).inspect();
 
@@ -220,14 +209,14 @@ export async function listNetworks(
     if (filter?.scope) filters.scope = [filter.scope];
 
     const networks = await docker.listNetworks({
-      filters: Object.keys(filters).length > 0
-        ? JSON.stringify(filters)
-        : undefined,
+      filters: Object.keys(filters).length > 0 ? JSON.stringify(filters) : undefined,
     });
 
     return networks.map((n) => {
       const net = n as unknown as Record<string, unknown>;
-      const ipam = net.IPAM as { Driver?: string; Config?: Array<{ Subnet?: string; Gateway?: string }> } | undefined;
+      const ipam = net.IPAM as
+        | { Driver?: string; Config?: Array<{ Subnet?: string; Gateway?: string }> }
+        | undefined;
       return {
         id: net.Id as string,
         name: net.Name as string,
@@ -298,8 +287,7 @@ export async function connectContainer(
   try {
     await docker.getNetwork(networkId).connect({
       Container: containerId,
-      EndpointConfig:
-        Object.keys(endpointConfig).length > 0 ? endpointConfig : undefined,
+      EndpointConfig: Object.keys(endpointConfig).length > 0 ? endpointConfig : undefined,
     });
   } catch (err) {
     const error = err as { statusCode?: number };
@@ -344,9 +332,7 @@ export async function disconnectContainer(
 /**
  * Removes all unused networks. Returns the names of deleted networks.
  */
-export async function pruneNetworks(
-  docker: Docker,
-): Promise<string[]> {
+export async function pruneNetworks(docker: Docker): Promise<string[]> {
   try {
     const result = await docker.pruneNetworks();
     return result.NetworksDeleted ?? [];

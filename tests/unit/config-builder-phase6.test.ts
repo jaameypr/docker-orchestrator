@@ -82,9 +82,7 @@ describe("buildContainerConfig Phase 6 — final builder", () => {
       image: "alpine:3.18",
       stopTimeout: 30,
     });
-    expect((config.HostConfig as Record<string, unknown>).StopTimeout).toBe(
-      30,
-    );
+    expect((config.HostConfig as Record<string, unknown>).StopTimeout).toBe(30);
   });
 
   it("should resolve image tag from tag field", () => {
@@ -149,10 +147,7 @@ describe("buildContainerConfig Phase 6 — final builder", () => {
       image: "alpine:3.18",
       dns: ["8.8.8.8", "1.1.1.1"],
     });
-    expect((config.HostConfig as Record<string, unknown>).Dns).toEqual([
-      "8.8.8.8",
-      "1.1.1.1",
-    ]);
+    expect((config.HostConfig as Record<string, unknown>).Dns).toEqual(["8.8.8.8", "1.1.1.1"]);
   });
 
   it("should set tmpfs mounts", () => {
@@ -177,10 +172,7 @@ describe("buildContainerConfig Phase 6 — final builder", () => {
         startPeriod: 15,
       },
     });
-    const hc = (config as Record<string, unknown>).Healthcheck as Record<
-      string,
-      unknown
-    >;
+    const hc = (config as Record<string, unknown>).Healthcheck as Record<string, unknown>;
     expect(hc).toBeDefined();
     expect(hc.Test).toEqual(["CMD", "test", "-f", "/healthy"]);
     expect(hc.Interval).toBe(10_000_000_000);
@@ -205,9 +197,7 @@ describe("buildContainerConfig Phase 6 — final builder", () => {
     const { config, warnings } = buildContainerConfig({ image: "alpine:3.18" });
     expect(config.Image).toBe("alpine:3.18");
     expect(config.HostConfig?.RestartPolicy?.Name).toBe("unless-stopped");
-    expect(
-      (config.HostConfig as Record<string, unknown>).StopTimeout,
-    ).toBe(10);
+    expect((config.HostConfig as Record<string, unknown>).StopTimeout).toBe(10);
     // No tag warning since explicit tag
     const tagWarns = warnings.filter((w) => w.message.includes(":latest"));
     expect(tagWarns.length).toBe(0);

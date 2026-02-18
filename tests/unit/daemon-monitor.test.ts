@@ -24,20 +24,29 @@ describe("DaemonMonitor", () => {
 
   it("should start in disconnected state", () => {
     const docker = createMockDocker();
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 100, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 100,
+      failureThreshold: 2,
+    });
     expect(monitor.getState()).toBe("disconnected");
   });
 
   it("should transition to connected on successful ping", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 5000, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 5000,
+      failureThreshold: 2,
+    });
     await monitor.start();
     expect(monitor.getState()).toBe("connected");
   });
 
   it("should transition to disconnected after failureThreshold ping failures", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
     await monitor.start();
     expect(monitor.getState()).toBe("connected");
 
@@ -51,7 +60,10 @@ describe("DaemonMonitor", () => {
 
   it("should emit daemon.connected event", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 5000, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 5000,
+      failureThreshold: 2,
+    });
 
     const handler = vi.fn();
     monitor.on("daemon.connected", handler);
@@ -62,7 +74,10 @@ describe("DaemonMonitor", () => {
 
   it("should emit daemon.disconnected event", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
 
     const handler = vi.fn();
     monitor.on("daemon.disconnected", handler);
@@ -78,7 +93,10 @@ describe("DaemonMonitor", () => {
 
   it("should call onDaemonDisconnect callback", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
 
     const cb = vi.fn();
     monitor.onDaemonDisconnect(cb);
@@ -93,7 +111,10 @@ describe("DaemonMonitor", () => {
 
   it("should call onDaemonReconnect callback after recovery", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
 
     const reconnectCb = vi.fn();
     monitor.onDaemonReconnect(reconnectCb);
@@ -116,7 +137,10 @@ describe("DaemonMonitor", () => {
 
   it("should stop periodic pings on stop()", async () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
     await monitor.start();
 
     const callCountBefore = docker.ping.mock.calls.length;
@@ -129,7 +153,10 @@ describe("DaemonMonitor", () => {
 
   it("should clean up on destroy()", () => {
     const docker = createMockDocker("success");
-    monitor = new DaemonMonitor(docker as unknown as Docker, { pingInterval: 50, failureThreshold: 2 });
+    monitor = new DaemonMonitor(docker as unknown as Docker, {
+      pingInterval: 50,
+      failureThreshold: 2,
+    });
     monitor.destroy();
     expect(monitor.listenerCount("daemon.connected")).toBe(0);
   });

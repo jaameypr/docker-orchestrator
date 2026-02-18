@@ -33,10 +33,7 @@ export function mapDockerError(
     message.includes("ENOENT") ||
     message.includes("connect EACCES")
   ) {
-    return new ConnectionError(
-      `Cannot connect to Docker daemon: ${message}`,
-      error,
-    );
+    return new ConnectionError(`Cannot connect to Docker daemon: ${message}`, error);
   }
 
   // 304 - not modified (e.g. container already started/stopped)
@@ -65,11 +62,7 @@ export function mapDockerError(
     if (context?.networkId) {
       return new NetworkNotFoundError(context.networkId, error);
     }
-    return new DockerOrchestratorError(
-      `Resource not found: ${message}`,
-      "NOT_FOUND",
-      error,
-    );
+    return new DockerOrchestratorError(`Resource not found: ${message}`, "NOT_FOUND", error);
   }
 
   // 409 - conflict (e.g. container name already in use, volume in use)
@@ -88,9 +81,5 @@ export function mapDockerError(
     return new DockerInternalError(message || "Docker internal error", error);
   }
 
-  return new DockerOrchestratorError(
-    message || "Unknown Docker error",
-    "UNKNOWN",
-    error,
-  );
+  return new DockerOrchestratorError(message || "Unknown Docker error", "UNKNOWN", error);
 }

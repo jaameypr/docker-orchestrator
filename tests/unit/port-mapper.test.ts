@@ -107,11 +107,7 @@ describe("parsePortMapping – object syntax", () => {
 
 describe("parsePortMappings", () => {
   it("should parse mixed inputs into flat array", () => {
-    const results = parsePortMappings([
-      8080,
-      "3000:3000",
-      { host: 9090, container: 90 },
-    ]);
+    const results = parsePortMappings([8080, "3000:3000", { host: 9090, container: 90 }]);
     expect(results).toHaveLength(3);
     expect(results[0].hostPort).toBe(8080);
     expect(results[1].hostPort).toBe(3000);
@@ -147,9 +143,7 @@ describe("toDockerPortConfig", () => {
     ]);
 
     expect(config.exposedPorts["53/udp"]).toBeDefined();
-    expect(config.portBindings["53/udp"]).toEqual([
-      { HostIp: "0.0.0.0", HostPort: "5353" },
-    ]);
+    expect(config.portBindings["53/udp"]).toEqual([{ HostIp: "0.0.0.0", HostPort: "5353" }]);
   });
 
   it("should handle auto-assign (hostPort 0)", () => {
@@ -157,9 +151,7 @@ describe("toDockerPortConfig", () => {
       { hostPort: 0, containerPort: 80, protocol: "tcp", hostIp: "0.0.0.0" },
     ]);
 
-    expect(config.portBindings["80/tcp"]).toEqual([
-      { HostIp: "0.0.0.0", HostPort: "0" },
-    ]);
+    expect(config.portBindings["80/tcp"]).toEqual([{ HostIp: "0.0.0.0", HostPort: "0" }]);
   });
 });
 
@@ -169,12 +161,8 @@ describe("resolvePortMappings", () => {
 
     expect(config.exposedPorts["8080/tcp"]).toBeDefined();
     expect(config.exposedPorts["80/udp"]).toBeDefined();
-    expect(config.portBindings["8080/tcp"]).toEqual([
-      { HostIp: "0.0.0.0", HostPort: "8080" },
-    ]);
-    expect(config.portBindings["80/udp"]).toEqual([
-      { HostIp: "0.0.0.0", HostPort: "3000" },
-    ]);
+    expect(config.portBindings["8080/tcp"]).toEqual([{ HostIp: "0.0.0.0", HostPort: "8080" }]);
+    expect(config.portBindings["80/udp"]).toEqual([{ HostIp: "0.0.0.0", HostPort: "3000" }]);
   });
 });
 

@@ -80,9 +80,9 @@ describe("Phase 7 Integration – Resilience", () => {
 
   describe("Retry + Timeout interaction", () => {
     it("should timeout slow retries", async () => {
-      const fn = vi.fn().mockImplementation(
-        () => new Promise((resolve) => setTimeout(resolve, 5000)),
-      );
+      const fn = vi
+        .fn()
+        .mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 5000)));
 
       await expect(
         withTimeout(
@@ -111,8 +111,7 @@ describe("Phase 7 Integration – Resilience", () => {
           maxRetries: 3,
           initialDelay: 10,
           jitter: false,
-          retryOn: (err) =>
-            err instanceof Error && err.message.includes("ECONNREFUSED"),
+          retryOn: (err) => err instanceof Error && err.message.includes("ECONNREFUSED"),
         }),
         5000,
         "test",
@@ -125,7 +124,12 @@ describe("Phase 7 Integration – Resilience", () => {
   describe("Graceful Shutdown integration", () => {
     it("should shut down streams and circuit breaker cleanly", async () => {
       const shutdown = new ShutdownManager({ timeout: 5000 });
-      const breaker = new CircuitBreaker({ failureThreshold: 5, resetTimeout: 30000, halfOpenMaxAttempts: 1, monitorInterval: 60000 });
+      const breaker = new CircuitBreaker({
+        failureThreshold: 5,
+        resetTimeout: 30000,
+        halfOpenMaxAttempts: 1,
+        monitorInterval: 60000,
+      });
 
       const streamDestroyed = vi.fn();
       const breakerDestroyed = vi.fn();
@@ -167,9 +171,10 @@ describe("Phase 7 Integration – Resilience", () => {
 
       const factory = vi.fn().mockImplementation(() => {
         callCount++;
-        const chunks = callCount === 1
-          ? ["chunk1"]  // first stream will error
-          : ["chunk2", "chunk3"];
+        const chunks =
+          callCount === 1
+            ? ["chunk1"] // first stream will error
+            : ["chunk2", "chunk3"];
 
         let idx = 0;
         const stream = new Readable({

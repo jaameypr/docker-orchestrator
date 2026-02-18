@@ -116,11 +116,7 @@ export {
 } from "./core/presets.js";
 
 // Core – Stack (Phase 6)
-export {
-  resolveDependencyOrder,
-  deployStack,
-  destroyStack,
-} from "./core/stack.js";
+export { resolveDependencyOrder, deployStack, destroyStack } from "./core/stack.js";
 
 // Builders
 export {
@@ -268,12 +264,7 @@ export { withTimeout, DEFAULT_TIMEOUTS } from "./utils/timeout.js";
 export type { TimeoutConfig } from "./utils/timeout.js";
 
 // Utils – Logger (Phase 7)
-export {
-  ConsoleLogger,
-  NoopLogger,
-  createLogger,
-  redactSensitiveData,
-} from "./utils/logger.js";
+export { ConsoleLogger, NoopLogger, createLogger, redactSensitiveData } from "./utils/logger.js";
 export type { Logger, LogLevel, LogContext, ConsoleLoggerOptions } from "./utils/logger.js";
 
 // Utils – Daemon Monitor (Phase 7)
@@ -344,13 +335,14 @@ export type {
   SimpleExecOptions,
   InteractiveExecOptions,
 } from "./types/exec.js";
-export { ExecOptionsSchema, SimpleExecOptionsSchema, InteractiveExecOptionsSchema } from "./types/exec.js";
+export {
+  ExecOptionsSchema,
+  SimpleExecOptionsSchema,
+  InteractiveExecOptionsSchema,
+} from "./types/exec.js";
 
 // Types – Files
-export type {
-  CopyToContainerOptions,
-  CopyFromContainerOptions,
-} from "./types/files.js";
+export type { CopyToContainerOptions, CopyFromContainerOptions } from "./types/files.js";
 export { CopyToContainerOptionsSchema, CopyFromContainerOptionsSchema } from "./types/files.js";
 
 // Types – Recreation
@@ -391,11 +383,7 @@ export type {
 export { PortMappingInputSchema } from "./types/ports.js";
 
 // Types – Mounts (Phase 4)
-export type {
-  MountInput,
-  ResolvedMount,
-  DockerMountConfig,
-} from "./types/mounts.js";
+export type { MountInput, ResolvedMount, DockerMountConfig } from "./types/mounts.js";
 export { MountInputSchema } from "./types/mounts.js";
 
 // Types – Resources (Phase 5)
@@ -503,7 +491,11 @@ export type {
   CommandQueueOptions,
   ContainerConsoleEvents,
 } from "./types/attach.js";
-export { AttachOptionsSchema, ConsoleOptionsSchema, SendAndWaitOptionsSchema } from "./types/attach.js";
+export {
+  AttachOptionsSchema,
+  ConsoleOptionsSchema,
+  SendAndWaitOptionsSchema,
+} from "./types/attach.js";
 
 // Types – Presets
 export type {

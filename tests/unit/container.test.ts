@@ -71,9 +71,9 @@ describe("createContainer", () => {
     const err = Object.assign(new Error("Conflict"), { statusCode: 409 });
     docker.createContainer.mockRejectedValue(err);
 
-    await expect(
-      createContainer(docker, { Image: "alpine", name: "existing" }),
-    ).rejects.toThrow(DockerOrchestratorError);
+    await expect(createContainer(docker, { Image: "alpine", name: "existing" })).rejects.toThrow(
+      DockerOrchestratorError,
+    );
   });
 });
 
@@ -97,9 +97,7 @@ describe("startContainer", () => {
       start: vi.fn().mockRejectedValue({ statusCode: 404 }),
     });
 
-    await expect(startContainer(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(startContainer(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 
   it("should throw ContainerAlreadyRunningError for 304 status", async () => {
@@ -141,9 +139,7 @@ describe("stopContainer", () => {
       stop: vi.fn().mockRejectedValue({ statusCode: 404 }),
     });
 
-    await expect(stopContainer(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(stopContainer(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 
   it("should throw ContainerAlreadyStoppedError for 304 status", async () => {
@@ -185,9 +181,7 @@ describe("removeContainer", () => {
       remove: vi.fn().mockRejectedValue({ statusCode: 404 }),
     });
 
-    await expect(removeContainer(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(removeContainer(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 });
 
@@ -216,9 +210,7 @@ describe("inspectContainer", () => {
       inspect: vi.fn().mockRejectedValue({ statusCode: 404 }),
     });
 
-    await expect(inspectContainer(docker, "nonexistent")).rejects.toThrow(
-      ContainerNotFoundError,
-    );
+    await expect(inspectContainer(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
 });
 

@@ -218,8 +218,16 @@ describeDocker("Integration: Monitoring & Logs", () => {
       const name1 = `${TEST_PREFIX}evt-a-${Date.now()}`;
       const name2 = `${TEST_PREFIX}evt-b-${Date.now()}`;
 
-      const { config: config1 } = buildContainerConfig({ image: TEST_IMAGE, name: name1, cmd: ["sleep", "5"] });
-      const { config: config2 } = buildContainerConfig({ image: TEST_IMAGE, name: name2, cmd: ["sleep", "5"] });
+      const { config: config1 } = buildContainerConfig({
+        image: TEST_IMAGE,
+        name: name1,
+        cmd: ["sleep", "5"],
+      });
+      const { config: config2 } = buildContainerConfig({
+        image: TEST_IMAGE,
+        name: name2,
+        cmd: ["sleep", "5"],
+      });
 
       const id1 = await createContainer(docker, config1);
       createdContainers.push(id1);

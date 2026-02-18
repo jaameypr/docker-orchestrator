@@ -220,10 +220,7 @@ export class ContainerConsole extends EventEmitter<ContainerConsoleEvents> {
         this.flushQueue();
       }
     } catch (err) {
-      if (
-        err instanceof ContainerNotFoundError ||
-        err instanceof ContainerNotRunningError
-      ) {
+      if (err instanceof ContainerNotFoundError || err instanceof ContainerNotRunningError) {
         this.setStatus("disconnected");
         this.emit("error", err);
         return;
@@ -299,20 +296,13 @@ export class ContainerConsole extends EventEmitter<ContainerConsoleEvents> {
   private async attemptReconnect(): Promise<void> {
     if (this.destroyed) return;
 
-    for (
-      let attempt = 0;
-      attempt < this.options.reconnectMaxRetries;
-      attempt++
-    ) {
+    for (let attempt = 0; attempt < this.options.reconnectMaxRetries; attempt++) {
       if (this.destroyed) return;
 
       this.reconnectAttempt = attempt + 1;
       this.setStatus("reconnecting");
 
-      const delay = Math.min(
-        1000 * Math.pow(2, attempt),
-        30000,
-      );
+      const delay = Math.min(1000 * Math.pow(2, attempt), 30000);
 
       await new Promise<void>((resolve) => setTimeout(resolve, delay));
 

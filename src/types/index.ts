@@ -72,9 +72,6 @@ export interface ContainerInspectResult {
   };
   networkSettings: {
     ipAddress: string;
-    ports: Record<
-      string,
-      Array<{ HostIp: string; HostPort: string }> | null
-    >;
+    ports: Record<string, Array<{ HostIp: string; HostPort: string }> | null>;
   };
 }

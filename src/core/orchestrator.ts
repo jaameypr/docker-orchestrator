@@ -23,10 +23,7 @@ import { waitForHealthy } from "./health-check.js";
 import { imageExists, pullImage } from "./image.js";
 import { createNetwork, listNetworks } from "./network.js";
 import { volumeExists, createVolume } from "./volume.js";
-import {
-  extractContainerConfig,
-  recreateContainer,
-} from "./container-recreation.js";
+import { extractContainerConfig, recreateContainer } from "./container-recreation.js";
 import { mapDockerError } from "../errors/mapping.js";
 import {
   DeploymentFailedError,
@@ -87,7 +84,12 @@ export class Orchestrator {
    */
   public readonly attach: {
     send: (containerId: string, command: string, timeout?: number) => Promise<void>;
-    sendMany: (containerId: string, commands: string[], delayMs?: number, timeout?: number) => Promise<void>;
+    sendMany: (
+      containerId: string,
+      commands: string[],
+      delayMs?: number,
+      timeout?: number,
+    ) => Promise<void>;
     console: (containerId: string, options?: Partial<ConsoleOptions>) => Promise<ContainerConsole>;
   };
 
@@ -112,7 +114,7 @@ export class Orchestrator {
       this.circuitBreaker = null;
     } else {
       this.circuitBreaker = new CircuitBreaker({
-        ...this.options.circuitBreaker as Record<string, unknown> ?? {},
+        ...((this.options.circuitBreaker as Record<string, unknown>) ?? {}),
         logger: this.logger,
       } as ConstructorParameters<typeof CircuitBreaker>[0]);
     }
@@ -122,9 +124,7 @@ export class Orchestrator {
       this.daemonMonitor = null;
     } else {
       const monitorOpts =
-        typeof this.options.daemonMonitor === "object"
-          ? this.options.daemonMonitor
-          : {};
+        typeof this.options.daemonMonitor === "object" ? this.options.daemonMonitor : {};
       this.daemonMonitor = new DaemonMonitor(docker, {
         ...monitorOpts,
         logger: this.logger,
@@ -194,10 +194,7 @@ export class Orchestrator {
    * 8. Wait for health check (if defined)
    * 9. On health check failure: stop + remove → DeploymentFailedError
    */
-  async deploy(
-    userConfig: ContainerConfig,
-    onProgress?: ProgressCallback,
-  ): Promise<DeployResult> {
+  async deploy(userConfig: ContainerConfig, onProgress?: ProgressCallback): Promise<DeployResult> {
     // Step 0: Resolve preset if specified
     let resolvedConfig = userConfig;
     let presetName: string | undefined;
@@ -221,8 +218,7 @@ export class Orchestrator {
     const finalConfig = this.applyDefaults(config);
 
     // Build docker config
-    const { config: dockerConfig, warnings } =
-      buildContainerConfig(finalConfig);
+    const { config: dockerConfig, warnings } = buildContainerConfig(finalConfig);
 
     // Add orchestrator labels
     const deployedAt = new Date().toISOString();
@@ -260,13 +256,20 @@ export class Orchestrator {
     // Step 3: Create named volumes if needed
     if (finalConfig.mounts) {
       for (const mount of finalConfig.mounts) {
-        if (typeof mount === "object" && "type" in mount && mount.type === "volume" && "source" in mount) {
+        if (
+          typeof mount === "object" &&
+          "type" in mount &&
+          mount.type === "volume" &&
+          "source" in mount
+        ) {
           const volName = mount.source as string;
           if (volName) {
             onProgress?.("volume", `Ensuring volume ${volName} exists`);
             const exists = await volumeExists(this.docker, volName);
             if (!exists) {
-              await createVolume(this.docker, { name: volName } as Parameters<typeof createVolume>[1]);
+              await createVolume(this.docker, { name: volName } as Parameters<
+                typeof createVolume
+              >[1]);
             }
           }
         }
@@ -274,9 +277,7 @@ export class Orchestrator {
     }
 
     // Step 4: Create custom networks if needed
-    const networkNames = finalConfig.networks
-      ? Object.keys(finalConfig.networks)
-      : [];
+    const networkNames = finalConfig.networks ? Object.keys(finalConfig.networks) : [];
     for (const netName of networkNames) {
       onProgress?.("network", `Ensuring network ${netName} exists`);
       try {
@@ -285,7 +286,9 @@ export class Orchestrator {
         });
         const exists = existingNets.some((n) => n.name === netName);
         if (!exists) {
-          await createNetwork(this.docker, { name: netName } as Parameters<typeof createNetwork>[1]);
+          await createNetwork(this.docker, { name: netName } as Parameters<
+            typeof createNetwork
+          >[1]);
         }
       } catch {
         // Network creation may fail if it already exists; that's fine
@@ -325,10 +328,7 @@ export class Orchestrator {
 
           await this.docker.getNetwork(netName).connect({
             Container: containerId,
-            EndpointConfig:
-              Object.keys(endpointConfig).length > 0
-                ? endpointConfig
-                : undefined,
+            EndpointConfig: Object.keys(endpointConfig).length > 0 ? endpointConfig : undefined,
           });
         } catch {
           // Best-effort network connection
@@ -344,7 +344,9 @@ export class Orchestrator {
       // Cleanup on start failure
       try {
         await this.docker.getContainer(containerId).remove({ force: true });
-      } catch { /* best effort */ }
+      } catch {
+        /* best effort */
+      }
       throw new DeploymentFailedError(
         "start",
         err instanceof Error ? err.message : String(err),
@@ -356,20 +358,20 @@ export class Orchestrator {
     let status: "running" | "healthy" = "running";
     if (finalConfig.healthCheck && finalConfig.healthCheck.type !== "none") {
       onProgress?.("healthcheck", "Waiting for container to become healthy");
-      const hcResult = await waitForHealthy(
-        this.docker,
-        containerId,
-        finalConfig.healthCheck,
-      );
+      const hcResult = await waitForHealthy(this.docker, containerId, finalConfig.healthCheck);
 
       if (hcResult.status === "timeout" || hcResult.status === "unhealthy") {
         // Step 9: Cleanup on health check failure
         try {
           await this.docker.getContainer(containerId).stop({ t: 5 });
-        } catch { /* may not be running */ }
+        } catch {
+          /* may not be running */
+        }
         try {
           await this.docker.getContainer(containerId).remove({ force: true });
-        } catch { /* best effort */ }
+        } catch {
+          /* best effort */
+        }
 
         throw new DeploymentFailedError(
           "healthcheck",
@@ -442,17 +444,14 @@ export class Orchestrator {
     onProgress?.("inspect", "Inspecting current container config");
 
     // Extract current config
-    const currentExtracted = await extractContainerConfig(
-      this.docker,
-      containerId,
-    );
+    const currentExtracted = await extractContainerConfig(this.docker, containerId);
 
     // Build a comparable config from extracted data
-    const currentUserConfig: Partial<ContainerConfig> =
-      this.managedContainers.get(containerId)?.config ?? {
-        image: currentExtracted.image,
-        name: currentExtracted.name,
-      };
+    const currentUserConfig: Partial<ContainerConfig> = this.managedContainers.get(containerId)
+      ?.config ?? {
+      image: currentExtracted.image,
+      name: currentExtracted.name,
+    };
 
     // Compute diff
     const changes = diffConfigs(currentUserConfig, {
@@ -483,17 +482,11 @@ export class Orchestrator {
         if (newConfig.image) recreationOpts.image = newConfig.image;
         if (newConfig.env) recreationOpts.env = newConfig.env;
         if (newConfig.cmd) recreationOpts.cmd = newConfig.cmd;
-        if (newConfig.entrypoint)
-          recreationOpts.entrypoint = newConfig.entrypoint;
+        if (newConfig.entrypoint) recreationOpts.entrypoint = newConfig.entrypoint;
         if (newConfig.labels) recreationOpts.labels = newConfig.labels;
-        if (newConfig.restartPolicy)
-          recreationOpts.restartPolicy = newConfig.restartPolicy;
+        if (newConfig.restartPolicy) recreationOpts.restartPolicy = newConfig.restartPolicy;
 
-        const result = await recreateContainer(
-          this.docker,
-          containerId,
-          recreationOpts,
-        );
+        const result = await recreateContainer(this.docker, containerId, recreationOpts);
 
         const newContainerId = result.newContainerId;
 
@@ -502,20 +495,14 @@ export class Orchestrator {
         const warnings: ConfigWarning[] = [];
 
         if (mergedConfig.healthCheck && mergedConfig.healthCheck.type !== "none") {
-          onProgress?.(
-            "healthcheck",
-            "Waiting for updated container to become healthy",
-          );
+          onProgress?.("healthcheck", "Waiting for updated container to become healthy");
           const hcResult = await waitForHealthy(
             this.docker,
             newContainerId,
             mergedConfig.healthCheck,
           );
 
-          if (
-            hcResult.status === "timeout" ||
-            hcResult.status === "unhealthy"
-          ) {
+          if (hcResult.status === "timeout" || hcResult.status === "unhealthy") {
             warnings.push({
               level: "critical",
               code: "no-memory-limit",
@@ -543,8 +530,7 @@ export class Orchestrator {
       } catch (err) {
         if (
           err instanceof Error &&
-          (err.name === "RecreationFailedError" ||
-            err.name === "CriticalRecreationError")
+          (err.name === "RecreationFailedError" || err.name === "CriticalRecreationError")
         ) {
           throw new UpdateFailedError(
             containerId,
@@ -591,10 +577,7 @@ export class Orchestrator {
    * 4. Remove named volumes (if requested)
    * 5. Cleanup orphaned networks
    */
-  async destroy(
-    containerId: string,
-    options?: Partial<DestroyOptions>,
-  ): Promise<void> {
+  async destroy(containerId: string, options?: Partial<DestroyOptions>): Promise<void> {
     const opts = DestroyOptionsSchema.parse(options ?? {});
 
     // Close active console for this container
@@ -608,18 +591,17 @@ export class Orchestrator {
     let volumeNames: string[] = [];
     let containerPresetName: string | undefined;
     try {
-      const data = (await this.docker
-        .getContainer(containerId)
-        .inspect()) as unknown as Record<string, unknown>;
+      const data = (await this.docker.getContainer(containerId).inspect()) as unknown as Record<
+        string,
+        unknown
+      >;
       const mounts = (data.Mounts ?? []) as Array<{
         Type?: string;
         Name?: string;
       }>;
 
       // Collect named volume names
-      volumeNames = mounts
-        .filter((m) => m.Type === "volume" && m.Name)
-        .map((m) => m.Name!);
+      volumeNames = mounts.filter((m) => m.Type === "volume" && m.Name).map((m) => m.Name!);
 
       // Check for preset label
       const config = data.Config as { Labels?: Record<string, string> } | undefined;
@@ -627,10 +609,7 @@ export class Orchestrator {
     } catch (err) {
       const error = err as { statusCode?: number };
       if (error.statusCode === 404) {
-        throw new ContainerNotFoundError(
-          containerId,
-          err instanceof Error ? err : undefined,
-        );
+        throw new ContainerNotFoundError(containerId, err instanceof Error ? err : undefined);
       }
       // If we can't inspect, proceed with stop/remove
     }
@@ -654,13 +633,9 @@ export class Orchestrator {
     // Stop container
     try {
       if (opts.force) {
-        await this.docker
-          .getContainer(containerId)
-          .stop({ t: 0 });
+        await this.docker.getContainer(containerId).stop({ t: 0 });
       } else {
-        await this.docker
-          .getContainer(containerId)
-          .stop({ t: opts.timeout });
+        await this.docker.getContainer(containerId).stop({ t: opts.timeout });
       }
     } catch {
       // Container may already be stopped
@@ -668,9 +643,7 @@ export class Orchestrator {
 
     // Remove container
     try {
-      await this.docker
-        .getContainer(containerId)
-        .remove({ force: opts.force });
+      await this.docker.getContainer(containerId).remove({ force: opts.force });
     } catch (err) {
       const error = err as { statusCode?: number };
       if (error.statusCode === 404) {
@@ -711,9 +684,7 @@ export class Orchestrator {
     return this.batchExecute(
       configs,
       (config, idx) =>
-        this.deploy(config, (step, detail) =>
-          options?.onProgress?.(`[${idx}] ${step}`, detail),
-        ),
+        this.deploy(config, (step, detail) => options?.onProgress?.(`[${idx}] ${step}`, detail)),
       concurrency,
     );
   }
@@ -726,11 +697,7 @@ export class Orchestrator {
     options?: Partial<DestroyOptions> & { concurrency?: number },
   ): Promise<BatchResult<void>> {
     const { concurrency = 5, ...destroyOpts } = options ?? {};
-    return this.batchExecute(
-      containerIds,
-      (id) => this.destroy(id, destroyOpts),
-      concurrency,
-    );
+    return this.batchExecute(containerIds, (id) => this.destroy(id, destroyOpts), concurrency);
   }
 
   /**
@@ -878,9 +845,10 @@ export class Orchestrator {
       const stopDeadline = Date.now() + timeout;
       while (Date.now() < stopDeadline) {
         try {
-          const data = (await this.docker
-            .getContainer(containerId)
-            .inspect()) as unknown as Record<string, unknown>;
+          const data = (await this.docker.getContainer(containerId).inspect()) as unknown as Record<
+            string,
+            unknown
+          >;
           const state = data.State as { Running?: boolean } | undefined;
           if (!state?.Running) {
             return; // Container has exited
@@ -976,11 +944,7 @@ export class Orchestrator {
     const result = { ...config };
 
     // Apply default security profile if not set
-    if (
-      !result.securityProfile &&
-      !result.security &&
-      this.options.defaultSecurityProfile
-    ) {
+    if (!result.securityProfile && !result.security && this.options.defaultSecurityProfile) {
       result.securityProfile = this.options.defaultSecurityProfile;
     }
 
@@ -1002,15 +966,13 @@ export class Orchestrator {
     return result;
   }
 
-  private async getResolvedPorts(
-    containerId: string,
-  ): Promise<ResolvedPortMapping[]> {
+  private async getResolvedPorts(containerId: string): Promise<ResolvedPortMapping[]> {
     try {
-      const data = (await this.docker.getContainer(containerId).inspect()) as unknown as Record<string, unknown>;
-      const ports = data.NetworkSettings as Record<
+      const data = (await this.docker.getContainer(containerId).inspect()) as unknown as Record<
         string,
         unknown
       >;
+      const ports = data.NetworkSettings as Record<string, unknown>;
       const portMap = (ports?.Ports ?? {}) as Record<
         string,
         Array<{ HostIp: string; HostPort: string }> | null
@@ -1116,9 +1078,6 @@ function requiresRestart(changes: ConfigDiff[]): boolean {
 /**
  * Convenience factory for creating an Orchestrator instance.
  */
-export function createOrchestrator(
-  docker: Docker,
-  options?: OrchestratorOptions,
-): Orchestrator {
+export function createOrchestrator(docker: Docker, options?: OrchestratorOptions): Orchestrator {
   return new Orchestrator(docker, options);
 }

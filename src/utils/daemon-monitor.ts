@@ -45,10 +45,7 @@ export class DaemonMonitor extends EventEmitter<DaemonMonitorEvents> {
   private disconnectCallbacks: Array<() => void> = [];
   private reconnectCallbacks: Array<() => void> = [];
 
-  constructor(
-    docker: Docker,
-    options?: Partial<DaemonMonitorOptions>,
-  ) {
+  constructor(docker: Docker, options?: Partial<DaemonMonitorOptions>) {
     super();
     this.docker = docker;
     this.options = { ...DEFAULT_OPTIONS, ...options };
@@ -105,18 +102,15 @@ export class DaemonMonitor extends EventEmitter<DaemonMonitorEvents> {
     this.transitionTo("reconnecting");
 
     try {
-      await retry(
-        () => this.docker.ping(),
-        {
-          maxRetries: 10,
-          initialDelay: 1000,
-          maxDelay: 30000,
-          backoffMultiplier: 2,
-          jitter: true,
-          retryOn: () => !this.destroyed,
-          logger: this.options.logger,
-        },
-      );
+      await retry(() => this.docker.ping(), {
+        maxRetries: 10,
+        initialDelay: 1000,
+        maxDelay: 30000,
+        backoffMultiplier: 2,
+        jitter: true,
+        retryOn: () => !this.destroyed,
+        logger: this.options.logger,
+      });
       this.onPingSuccess();
     } catch {
       if (!this.destroyed) {
@@ -142,8 +136,7 @@ export class DaemonMonitor extends EventEmitter<DaemonMonitorEvents> {
 
   private onPingSuccess(): void {
     this.consecutiveFailures = 0;
-    const wasDisconnected =
-      this.state === "disconnected" || this.state === "reconnecting";
+    const wasDisconnected = this.state === "disconnected" || this.state === "reconnecting";
     this.transitionTo("connected");
 
     if (wasDisconnected) {

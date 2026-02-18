@@ -10,18 +10,11 @@ import {
   disconnectContainer,
   pruneNetworks,
 } from "../../src/core/network.js";
-import {
-  createContainer,
-  startContainer,
-  removeContainer,
-} from "../../src/core/container.js";
+import { createContainer, startContainer, removeContainer } from "../../src/core/container.js";
 import { executeCommand } from "../../src/core/exec.js";
 import { pullImage, imageExists } from "../../src/core/image.js";
 import { buildContainerConfig } from "../../src/builders/config-builder.js";
-import {
-  NetworkAlreadyExistsError,
-  ContainerStillConnectedError,
-} from "../../src/errors/base.js";
+import { NetworkAlreadyExistsError, ContainerStillConnectedError } from "../../src/errors/base.js";
 
 const TEST_IMAGE = "alpine:latest";
 const TEST_PREFIX = "docker-orch-net-test-";
@@ -47,13 +40,17 @@ describeDocker("Integration: Network Management", () => {
     for (const id of createdContainers) {
       try {
         await removeContainer(docker, id, true);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
     // Then cleanup networks
     for (const id of createdNetworks) {
       try {
         await removeNetwork(docker, id, true);
-      } catch { /* ignore */ }
+      } catch {
+        /* ignore */
+      }
     }
   });
 
@@ -83,9 +80,7 @@ describeDocker("Integration: Network Management", () => {
     const netId = await createNetwork(docker, { name });
     createdNetworks.push(netId);
 
-    await expect(createNetwork(docker, { name })).rejects.toThrow(
-      NetworkAlreadyExistsError,
-    );
+    await expect(createNetwork(docker, { name })).rejects.toThrow(NetworkAlreadyExistsError);
   });
 
   it("should list networks including custom ones", async () => {
@@ -219,9 +214,7 @@ describeDocker("Integration: Network Management", () => {
 
     await connectContainer(docker, netId, containerId);
 
-    await expect(removeNetwork(docker, netId)).rejects.toThrow(
-      ContainerStillConnectedError,
-    );
+    await expect(removeNetwork(docker, netId)).rejects.toThrow(ContainerStillConnectedError);
   });
 
   it("should prune unused networks", async () => {

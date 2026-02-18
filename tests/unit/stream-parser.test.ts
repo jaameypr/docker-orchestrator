@@ -175,8 +175,12 @@ describe("demuxStream", () => {
     let stdoutEnded = false;
     let stderrEnded = false;
 
-    stdout.on("end", () => { stdoutEnded = true; });
-    stderr.on("end", () => { stderrEnded = true; });
+    stdout.on("end", () => {
+      stdoutEnded = true;
+    });
+    stderr.on("end", () => {
+      stderrEnded = true;
+    });
 
     // Drain data events
     stdout.resume();

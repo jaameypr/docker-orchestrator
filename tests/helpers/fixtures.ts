@@ -12,9 +12,7 @@ import type { DockerStatsRaw } from "../../src/types/metrics.js";
  * Generates a complete Docker stats response fixture.
  * Defaults produce a container using 20% CPU and ~100MB memory.
  */
-export function generateStatsFixture(
-  overrides: Partial<DockerStatsRaw> = {},
-): DockerStatsRaw {
+export function generateStatsFixture(overrides: Partial<DockerStatsRaw> = {}): DockerStatsRaw {
   return {
     read: "2024-01-15T10:30:00.000000000Z",
     cpu_stats: {
@@ -338,14 +336,16 @@ export function generateEventFixture(overrides: EventOverrides = {}) {
 // Docker Network Fixtures
 // ---------------------------------------------------------------------------
 
-export function generateNetworkInspectFixture(overrides: {
-  id?: string;
-  name?: string;
-  driver?: string;
-  subnet?: string;
-  gateway?: string;
-  containers?: Record<string, { Name: string; IPv4Address: string }>;
-} = {}) {
+export function generateNetworkInspectFixture(
+  overrides: {
+    id?: string;
+    name?: string;
+    driver?: string;
+    subnet?: string;
+    gateway?: string;
+    containers?: Record<string, { Name: string; IPv4Address: string }>;
+  } = {},
+) {
   const {
     id = "network-abc123",
     name = "test-network",
@@ -380,12 +380,14 @@ export function generateNetworkInspectFixture(overrides: {
 // Docker Volume Fixtures
 // ---------------------------------------------------------------------------
 
-export function generateVolumeInspectFixture(overrides: {
-  name?: string;
-  driver?: string;
-  mountpoint?: string;
-  labels?: Record<string, string>;
-} = {}) {
+export function generateVolumeInspectFixture(
+  overrides: {
+    name?: string;
+    driver?: string;
+    mountpoint?: string;
+    labels?: Record<string, string>;
+  } = {},
+) {
   const {
     name = "test-volume",
     driver = "local",
@@ -409,12 +411,14 @@ export function generateVolumeInspectFixture(overrides: {
 // Docker Image Fixtures
 // ---------------------------------------------------------------------------
 
-export function generateImageInspectFixture(overrides: {
-  id?: string;
-  repoTags?: string[];
-  size?: number;
-  created?: number;
-} = {}) {
+export function generateImageInspectFixture(
+  overrides: {
+    id?: string;
+    repoTags?: string[];
+    size?: number;
+    created?: number;
+  } = {},
+) {
   const {
     id = "sha256:abc123",
     repoTags = ["alpine:latest"],
@@ -438,18 +442,15 @@ export function generateImageInspectFixture(overrides: {
 // Docker Exec Fixtures
 // ---------------------------------------------------------------------------
 
-export function generateExecInspectFixture(overrides: {
-  id?: string;
-  running?: boolean;
-  exitCode?: number;
-  pid?: number;
-} = {}) {
-  const {
-    id = "exec-abc123",
-    running = false,
-    exitCode = 0,
-    pid = 0,
-  } = overrides;
+export function generateExecInspectFixture(
+  overrides: {
+    id?: string;
+    running?: boolean;
+    exitCode?: number;
+    pid?: number;
+  } = {},
+) {
+  const { id = "exec-abc123", running = false, exitCode = 0, pid = 0 } = overrides;
 
   return {
     ID: id,

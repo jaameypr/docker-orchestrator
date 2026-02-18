@@ -71,7 +71,10 @@ describe("createClient", () => {
 
     // Use a fresh mock that fails
     const MockDockerClass = vi.mocked(Docker);
-    MockDockerClass.mockImplementationOnce(function (this: { ping: () => void; version: () => void }) {
+    MockDockerClass.mockImplementationOnce(function (this: {
+      ping: () => void;
+      version: () => void;
+    }) {
       this.ping = vi.fn().mockRejectedValue(pingError);
       this.version = vi.fn();
       return this;
@@ -86,7 +89,10 @@ describe("createClient", () => {
 
     const oldVersion = { ...fakeVersionInfo, Version: "19.03.0" };
     const MockDockerClass = vi.mocked(Docker);
-    MockDockerClass.mockImplementationOnce(function (this: { ping: () => void; version: () => void }) {
+    MockDockerClass.mockImplementationOnce(function (this: {
+      ping: () => void;
+      version: () => void;
+    }) {
       this.ping = vi.fn().mockResolvedValue("OK");
       this.version = vi.fn().mockResolvedValue(oldVersion);
       return this;
@@ -94,9 +100,7 @@ describe("createClient", () => {
 
     const result = await createClient();
     expect(result.versionInfo.version).toBe("19.03.0");
-    expect(warnSpy).toHaveBeenCalledWith(
-      expect.stringContaining("below the recommended minimum"),
-    );
+    expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining("below the recommended minimum"));
 
     warnSpy.mockRestore();
   });
@@ -122,7 +126,10 @@ describe("createClient", () => {
  */
 function getMockDockerAfterConstruction(versionInfo: typeof fakeVersionInfo) {
   const MockDockerClass = vi.mocked(Docker);
-  MockDockerClass.mockImplementationOnce(function (this: { ping: () => void; version: () => void }) {
+  MockDockerClass.mockImplementationOnce(function (this: {
+    ping: () => void;
+    version: () => void;
+  }) {
     this.ping = vi.fn().mockResolvedValue("OK");
     this.version = vi.fn().mockResolvedValue(versionInfo);
     return this;

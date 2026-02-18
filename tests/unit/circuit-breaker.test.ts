@@ -54,9 +54,7 @@ describe("CircuitBreaker", () => {
         .catch(() => {});
     }
 
-    await expect(
-      breaker.execute(async () => "should not reach"),
-    ).rejects.toThrow(CircuitOpenError);
+    await expect(breaker.execute(async () => "should not reach")).rejects.toThrow(CircuitOpenError);
   });
 
   it("should transition to half-open after resetTimeout", async () => {

@@ -145,10 +145,7 @@ describe("mergePresetConfig", () => {
   });
 
   it("should let user override image", () => {
-    const result = mergePresetConfig(
-      { image: "alpine:3.18" },
-      { image: "alpine:3.19" },
-    );
+    const result = mergePresetConfig({ image: "alpine:3.18" }, { image: "alpine:3.19" });
     expect(result.image).toBe("alpine:3.19");
   });
 
@@ -161,10 +158,7 @@ describe("mergePresetConfig", () => {
   });
 
   it("should preserve preset config when user provides no overrides", () => {
-    const result = mergePresetConfig(
-      { image: "alpine", env: { A: "1" }, cmd: ["sh"] },
-      {},
-    );
+    const result = mergePresetConfig({ image: "alpine", env: { A: "1" }, cmd: ["sh"] }, {});
     expect(result.image).toBe("alpine");
     expect(result.env).toEqual({ A: "1" });
     expect(result.cmd).toEqual(["sh"]);
@@ -172,7 +166,10 @@ describe("mergePresetConfig", () => {
 
   it("should additively merge mounts", () => {
     const result = mergePresetConfig(
-      { image: "alpine", mounts: ["/data:/data" as unknown as import("../../src/types/mounts.js").MountInput] },
+      {
+        image: "alpine",
+        mounts: ["/data:/data" as unknown as import("../../src/types/mounts.js").MountInput],
+      },
       { mounts: ["/logs:/logs" as unknown as import("../../src/types/mounts.js").MountInput] },
     );
     expect(result.mounts).toHaveLength(2);
@@ -208,10 +205,12 @@ describe("PresetRegistry", () => {
 
   it("should overwrite when overwrite: true", () => {
     const registry = new PresetRegistry();
-    registry.register(definePreset({
-      name: "overwrite-test",
-      config: { image: "alpine:3.18" },
-    }));
+    registry.register(
+      definePreset({
+        name: "overwrite-test",
+        config: { image: "alpine:3.18" },
+      }),
+    );
     registry.register(
       definePreset({
         name: "overwrite-test",
@@ -231,10 +230,12 @@ describe("PresetRegistry", () => {
 
   it("should check existence with has()", () => {
     const registry = new PresetRegistry();
-    registry.register(definePreset({
-      name: "exists",
-      config: { image: "alpine" },
-    }));
+    registry.register(
+      definePreset({
+        name: "exists",
+        config: { image: "alpine" },
+      }),
+    );
 
     expect(registry.has("exists")).toBe(true);
     expect(registry.has("nope")).toBe(false);

@@ -62,10 +62,7 @@ export async function createExec(
  * Demuxes the stream unless TTY mode is enabled.
  * Returns structured output with stdout, stderr, and exitCode.
  */
-export async function startExec(
-  exec: Docker.Exec,
-  tty: boolean,
-): Promise<ExecResult> {
+export async function startExec(exec: Docker.Exec, tty: boolean): Promise<ExecResult> {
   const stream = await exec.start({ hijack: true, stdin: false, Detach: false, Tty: tty });
 
   return new Promise<ExecResult>((resolve, reject) => {
@@ -256,7 +253,13 @@ export async function executeScript(
   containerId: string,
   script: string,
   interpreter = "/bin/sh",
-  copyFn?: (docker: Docker, containerId: string, destPath: string, filename: string, content: Buffer | string) => Promise<void>,
+  copyFn?: (
+    docker: Docker,
+    containerId: string,
+    destPath: string,
+    filename: string,
+    content: Buffer | string,
+  ) => Promise<void>,
 ): Promise<ExecResult> {
   const scriptPath = `/tmp/_docker_orch_script_${Date.now()}.sh`;
 
@@ -265,7 +268,11 @@ export async function executeScript(
   } else {
     // Fallback: use exec with heredoc to write the script
     const writeExec = await createExec(docker, containerId, {
-      cmd: ["/bin/sh", "-c", `cat > ${scriptPath} << 'DOCKER_ORCH_EOF'\n${script}\nDOCKER_ORCH_EOF`],
+      cmd: [
+        "/bin/sh",
+        "-c",
+        `cat > ${scriptPath} << 'DOCKER_ORCH_EOF'\n${script}\nDOCKER_ORCH_EOF`,
+      ],
       attachStdout: true,
       attachStderr: true,
       attachStdin: false,

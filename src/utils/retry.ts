@@ -76,10 +76,7 @@ export function calculateDelay(
 // Retry function
 // ---------------------------------------------------------------------------
 
-export async function retry<T>(
-  fn: () => Promise<T>,
-  options?: Partial<RetryOptions>,
-): Promise<T> {
+export async function retry<T>(fn: () => Promise<T>, options?: Partial<RetryOptions>): Promise<T> {
   const opts = { ...RETRY_DEFAULTS, ...options };
 
   let lastError: unknown;
@@ -109,15 +106,12 @@ export async function retry<T>(
         opts.jitter,
       );
 
-      opts.logger?.debug(
-        `Retry attempt ${attempt + 1}/${opts.maxRetries} after ${delay}ms`,
-        {
-          attempt: attempt + 1,
-          maxRetries: opts.maxRetries,
-          delay,
-          error: err instanceof Error ? err.message : String(err),
-        },
-      );
+      opts.logger?.debug(`Retry attempt ${attempt + 1}/${opts.maxRetries} after ${delay}ms`, {
+        attempt: attempt + 1,
+        maxRetries: opts.maxRetries,
+        delay,
+        error: err instanceof Error ? err.message : String(err),
+      });
 
       opts.onRetry?.(attempt + 1, err, delay);
 

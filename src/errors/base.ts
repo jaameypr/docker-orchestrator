@@ -76,12 +76,7 @@ export class DockerOrchestratorError extends Error {
   public readonly context?: Record<string, unknown>;
   public readonly timestamp: Date;
 
-  constructor(
-    message: string,
-    code: string,
-    cause?: Error,
-    context?: Record<string, unknown>,
-  ) {
+  constructor(message: string, code: string, cause?: Error, context?: Record<string, unknown>) {
     super(message);
     this.name = "DockerOrchestratorError";
     this.code = code;
@@ -113,9 +108,7 @@ export class DockerOrchestratorError extends Error {
 // Type Guards
 // ---------------------------------------------------------------------------
 
-export function isDockerOrchestratorError(
-  error: unknown,
-): error is DockerOrchestratorError {
+export function isDockerOrchestratorError(error: unknown): error is DockerOrchestratorError {
   return error instanceof DockerOrchestratorError;
 }
 
@@ -157,11 +150,7 @@ export class ConnectionError extends DockerOrchestratorError {
 
 export class DockerDaemonNotRunningError extends DockerOrchestratorError {
   constructor(message?: string, cause?: Error) {
-    super(
-      message ?? "Docker daemon is not running",
-      "DOCKER_DAEMON_NOT_RUNNING",
-      cause,
-    );
+    super(message ?? "Docker daemon is not running", "DOCKER_DAEMON_NOT_RUNNING", cause);
     this.name = "DockerDaemonNotRunningError";
   }
 }
@@ -170,11 +159,7 @@ export class DockerApiVersionError extends DockerOrchestratorError {
   public readonly requiredVersion: string;
   public readonly actualVersion: string;
 
-  constructor(
-    requiredVersion: string,
-    actualVersion: string,
-    cause?: Error,
-  ) {
+  constructor(requiredVersion: string, actualVersion: string, cause?: Error) {
     super(
       `Docker API version ${actualVersion} is incompatible (requires ${requiredVersion})`,
       "DOCKER_API_VERSION_ERROR",
@@ -204,11 +189,7 @@ export class ContainerNotRunningError extends DockerOrchestratorError {
   public readonly containerId: string;
 
   constructor(containerId: string, cause?: Error) {
-    super(
-      `Container is not running: ${containerId}`,
-      "CONTAINER_NOT_RUNNING",
-      cause,
-    );
+    super(`Container is not running: ${containerId}`, "CONTAINER_NOT_RUNNING", cause);
     this.name = "ContainerNotRunningError";
     this.containerId = containerId;
   }
@@ -218,11 +199,7 @@ export class ContainerAlreadyRunningError extends DockerOrchestratorError {
   public readonly containerId: string;
 
   constructor(containerId: string, cause?: Error) {
-    super(
-      `Container is already running: ${containerId}`,
-      "CONTAINER_ALREADY_RUNNING",
-      cause,
-    );
+    super(`Container is already running: ${containerId}`, "CONTAINER_ALREADY_RUNNING", cause);
     this.name = "ContainerAlreadyRunningError";
     this.containerId = containerId;
   }
@@ -232,11 +209,7 @@ export class ContainerAlreadyStoppedError extends DockerOrchestratorError {
   public readonly containerId: string;
 
   constructor(containerId: string, cause?: Error) {
-    super(
-      `Container is already stopped: ${containerId}`,
-      "CONTAINER_ALREADY_STOPPED",
-      cause,
-    );
+    super(`Container is already stopped: ${containerId}`, "CONTAINER_ALREADY_STOPPED", cause);
     this.name = "ContainerAlreadyStoppedError";
     this.containerId = containerId;
   }
@@ -274,11 +247,7 @@ export class ImagePullError extends DockerOrchestratorError {
   public readonly imageName: string;
 
   constructor(imageName: string, reason: string, cause?: Error) {
-    super(
-      `Failed to pull image "${imageName}": ${reason}`,
-      "IMAGE_PULL_ERROR",
-      cause,
-    );
+    super(`Failed to pull image "${imageName}": ${reason}`, "IMAGE_PULL_ERROR", cause);
     this.name = "ImagePullError";
     this.imageName = imageName;
   }
@@ -308,11 +277,7 @@ export class InsufficientResourcesError extends DockerOrchestratorError {
   public readonly resource: string;
 
   constructor(resource: string, detail: string, cause?: Error) {
-    super(
-      `Insufficient resources (${resource}): ${detail}`,
-      "INSUFFICIENT_RESOURCES",
-      cause,
-    );
+    super(`Insufficient resources (${resource}): ${detail}`, "INSUFFICIENT_RESOURCES", cause);
     this.name = "InsufficientResourcesError";
     this.resource = resource;
   }
@@ -357,17 +322,9 @@ export class CommandFailedError extends DockerOrchestratorError {
   public readonly stderr: string;
   public readonly exitCode: number;
 
-  constructor(
-    exitCode: number,
-    stdout: string,
-    stderr: string,
-    cause?: Error,
-  ) {
+  constructor(exitCode: number, stdout: string, stderr: string, cause?: Error) {
     super(
-      `Command failed with exit code ${exitCode}: ${stderr || stdout}`.slice(
-        0,
-        500,
-      ),
+      `Command failed with exit code ${exitCode}: ${stderr || stdout}`.slice(0, 500),
       "COMMAND_FAILED",
       cause,
     );
@@ -408,11 +365,7 @@ export class DeploymentFailedError extends DockerOrchestratorError {
   public readonly step: string;
 
   constructor(step: string, message: string, cause?: Error) {
-    super(
-      `Deployment failed at step "${step}": ${message}`,
-      "DEPLOYMENT_FAILED",
-      cause,
-    );
+    super(`Deployment failed at step "${step}": ${message}`, "DEPLOYMENT_FAILED", cause);
     this.name = "DeploymentFailedError";
     this.step = step;
   }
@@ -422,11 +375,7 @@ export class RecreationFailedError extends DockerOrchestratorError {
   public readonly rollbackStatus: "succeeded" | "failed";
   public readonly containerId: string;
 
-  constructor(
-    containerId: string,
-    rollbackStatus: "succeeded" | "failed",
-    cause?: Error,
-  ) {
+  constructor(containerId: string, rollbackStatus: "succeeded" | "failed", cause?: Error) {
     super(
       `Container recreation failed for ${containerId}. Rollback ${rollbackStatus}.`,
       "RECREATION_FAILED",
@@ -443,11 +392,7 @@ export class CriticalRecreationError extends DockerOrchestratorError {
   public readonly recreationError: Error;
   public readonly rollbackError: Error;
 
-  constructor(
-    containerId: string,
-    recreationError: Error,
-    rollbackError: Error,
-  ) {
+  constructor(containerId: string, recreationError: Error, rollbackError: Error) {
     super(
       `CRITICAL: Container recreation AND rollback both failed for ${containerId}. ` +
         `Recreation error: ${recreationError.message}. Rollback error: ${rollbackError.message}`,
@@ -509,11 +454,7 @@ export class TimeoutError extends DockerOrchestratorError {
   public readonly operation: string;
 
   constructor(operation: string, timeoutMs: number, cause?: Error) {
-    super(
-      `Operation "${operation}" timed out after ${timeoutMs}ms`,
-      "TIMEOUT",
-      cause,
-    );
+    super(`Operation "${operation}" timed out after ${timeoutMs}ms`, "TIMEOUT", cause);
     this.name = "TimeoutError";
     this.timeoutMs = timeoutMs;
     this.operation = operation;
@@ -539,11 +480,7 @@ export class ValidationError extends DockerOrchestratorError {
   public readonly fieldPath: string;
 
   constructor(fieldPath: string, message: string, cause?: Error) {
-    super(
-      `Validation error at "${fieldPath}": ${message}`,
-      "VALIDATION_ERROR",
-      cause,
-    );
+    super(`Validation error at "${fieldPath}": ${message}`, "VALIDATION_ERROR", cause);
     this.name = "ValidationError";
     this.fieldPath = fieldPath;
   }
@@ -581,11 +518,7 @@ export class InvalidMountError extends DockerOrchestratorError {
   public readonly mountSpec: string;
 
   constructor(mountSpec: string, reason: string, cause?: Error) {
-    super(
-      `Invalid mount specification "${mountSpec}": ${reason}`,
-      "INVALID_MOUNT",
-      cause,
-    );
+    super(`Invalid mount specification "${mountSpec}": ${reason}`, "INVALID_MOUNT", cause);
     this.name = "InvalidMountError";
     this.mountSpec = mountSpec;
   }
@@ -596,11 +529,7 @@ export class InvalidSubnetError extends DockerOrchestratorError {
   public readonly ip: string;
 
   constructor(ip: string, subnet: string, cause?: Error) {
-    super(
-      `IP address ${ip} is not within subnet ${subnet}`,
-      "INVALID_SUBNET",
-      cause,
-    );
+    super(`IP address ${ip} is not within subnet ${subnet}`, "INVALID_SUBNET", cause);
     this.name = "InvalidSubnetError";
     this.subnet = subnet;
     this.ip = ip;
@@ -625,11 +554,7 @@ export class NetworkAlreadyExistsError extends DockerOrchestratorError {
   public readonly networkName: string;
 
   constructor(networkName: string, cause?: Error) {
-    super(
-      `Network with name "${networkName}" already exists`,
-      "NETWORK_ALREADY_EXISTS",
-      cause,
-    );
+    super(`Network with name "${networkName}" already exists`, "NETWORK_ALREADY_EXISTS", cause);
     this.name = "NetworkAlreadyExistsError";
     this.networkName = networkName;
   }
@@ -639,11 +564,7 @@ export class ContainerStillConnectedError extends DockerOrchestratorError {
   public readonly networkId: string;
   public readonly connectedContainers: string[];
 
-  constructor(
-    networkId: string,
-    connectedContainers: string[],
-    cause?: Error,
-  ) {
+  constructor(networkId: string, connectedContainers: string[], cause?: Error) {
     super(
       `Cannot remove network ${networkId}: ${connectedContainers.length} container(s) still connected (${connectedContainers.join(", ")})`,
       "CONTAINER_STILL_CONNECTED",
@@ -673,11 +594,7 @@ export class VolumeAlreadyExistsError extends DockerOrchestratorError {
   public readonly volumeName: string;
 
   constructor(volumeName: string, cause?: Error) {
-    super(
-      `Volume with name "${volumeName}" already exists`,
-      "VOLUME_ALREADY_EXISTS",
-      cause,
-    );
+    super(`Volume with name "${volumeName}" already exists`, "VOLUME_ALREADY_EXISTS", cause);
     this.name = "VolumeAlreadyExistsError";
     this.volumeName = volumeName;
   }
@@ -701,11 +618,7 @@ export class PermissionError extends DockerOrchestratorError {
   public readonly path: string;
 
   constructor(path: string, cause?: Error) {
-    super(
-      `Permission denied: ${path}. Check UID/GID settings.`,
-      "PERMISSION_DENIED",
-      cause,
-    );
+    super(`Permission denied: ${path}. Check UID/GID settings.`, "PERMISSION_DENIED", cause);
     this.name = "PermissionError";
     this.path = path;
   }
@@ -715,11 +628,7 @@ export class SeccompProfileNotFoundError extends DockerOrchestratorError {
   public readonly profilePath: string;
 
   constructor(profilePath: string, cause?: Error) {
-    super(
-      `Seccomp profile not found: ${profilePath}`,
-      "SECCOMP_PROFILE_NOT_FOUND",
-      cause,
-    );
+    super(`Seccomp profile not found: ${profilePath}`, "SECCOMP_PROFILE_NOT_FOUND", cause);
     this.name = "SeccompProfileNotFoundError";
     this.profilePath = profilePath;
   }
@@ -818,11 +727,7 @@ export class PresetNotFoundError extends DockerOrchestratorError {
   public readonly presetName: string;
 
   constructor(presetName: string, cause?: Error) {
-    super(
-      `Preset not found: "${presetName}"`,
-      "PRESET_NOT_FOUND",
-      cause,
-    );
+    super(`Preset not found: "${presetName}"`, "PRESET_NOT_FOUND", cause);
     this.name = "PresetNotFoundError";
     this.presetName = presetName;
   }
@@ -846,11 +751,7 @@ export class PresetValidationError extends DockerOrchestratorError {
   public readonly details: string;
 
   constructor(details: string, cause?: Error) {
-    super(
-      `Invalid preset: ${details}`,
-      "PRESET_VALIDATION_ERROR",
-      cause,
-    );
+    super(`Invalid preset: ${details}`, "PRESET_VALIDATION_ERROR", cause);
     this.name = "PresetValidationError";
     this.details = details;
   }

@@ -179,8 +179,7 @@ export const SecurityPresets: Record<SecurityPresetName, SecurityPreset> = {
   },
   standard: {
     name: "standard",
-    description:
-      "Recommended defaults: non-root recommended, Docker default caps, default seccomp",
+    description: "Recommended defaults: non-root recommended, Docker default caps, default seccomp",
     config: {
       noNewPrivileges: true,
       seccomp: "default",

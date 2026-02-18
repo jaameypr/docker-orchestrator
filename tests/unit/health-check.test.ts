@@ -45,21 +45,15 @@ describe("HealthCheckConfigSchema", () => {
   });
 
   it("should reject http without httpGet", () => {
-    expect(() =>
-      HealthCheckConfigSchema.parse({ type: "http" }),
-    ).toThrow();
+    expect(() => HealthCheckConfigSchema.parse({ type: "http" })).toThrow();
   });
 
   it("should reject tcp without tcpSocket", () => {
-    expect(() =>
-      HealthCheckConfigSchema.parse({ type: "tcp" }),
-    ).toThrow();
+    expect(() => HealthCheckConfigSchema.parse({ type: "tcp" })).toThrow();
   });
 
   it("should reject exec without exec config", () => {
-    expect(() =>
-      HealthCheckConfigSchema.parse({ type: "exec" }),
-    ).toThrow();
+    expect(() => HealthCheckConfigSchema.parse({ type: "exec" })).toThrow();
   });
 
   it("should apply default values", () => {
@@ -145,9 +139,7 @@ describe("buildDockerHealthcheck", () => {
 });
 
 describe("waitForHealthy", () => {
-  function createMockDocker(
-    healthStatuses: Array<string | null>,
-  ): Record<string, unknown> {
+  function createMockDocker(healthStatuses: Array<string | null>): Record<string, unknown> {
     let callCount = 0;
     return {
       getContainer: () => ({
@@ -172,28 +164,19 @@ describe("waitForHealthy", () => {
 
   it("should return healthy immediately for type none", async () => {
     const docker = createMockDocker([]);
-    const result = await waitForHealthy(
-      docker as never,
-      "container-123",
-      {
-        type: "none",
-        interval: 1,
-        timeout: 1,
-        retries: 1,
-        startPeriod: 0,
-      } as HealthCheckConfig,
-    );
+    const result = await waitForHealthy(docker as never, "container-123", {
+      type: "none",
+      interval: 1,
+      timeout: 1,
+      retries: 1,
+      startPeriod: 0,
+    } as HealthCheckConfig);
     expect(result.status).toBe("healthy");
     expect(result.checks).toBe(0);
   });
 
   it("should poll Docker-native health check until healthy", async () => {
-    const docker = createMockDocker([
-      "starting",
-      "starting",
-      "starting",
-      "healthy",
-    ]);
+    const docker = createMockDocker(["starting", "starting", "starting", "healthy"]);
 
     const result = await waitForHealthy(
       docker as never,

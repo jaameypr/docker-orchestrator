@@ -1,11 +1,7 @@
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { existsSync } from "node:fs";
 import Docker from "dockerode";
-import {
-  createContainer,
-  startContainer,
-  removeContainer,
-} from "../../src/core/container.js";
+import { createContainer, startContainer, removeContainer } from "../../src/core/container.js";
 import { executeCommand, executeScript } from "../../src/core/exec.js";
 import { buildContainerConfig } from "../../src/builders/config-builder.js";
 import { CommandFailedError } from "../../src/errors/base.js";
@@ -58,9 +54,9 @@ describeDocker("Integration: Exec Operations", () => {
   });
 
   it("should return correct exit code for failed commands", async () => {
-    await expect(
-      executeCommand(docker, containerId, ["sh", "-c", "exit 42"]),
-    ).rejects.toThrow(CommandFailedError);
+    await expect(executeCommand(docker, containerId, ["sh", "-c", "exit 42"])).rejects.toThrow(
+      CommandFailedError,
+    );
 
     try {
       await executeCommand(docker, containerId, ["sh", "-c", "exit 42"]);

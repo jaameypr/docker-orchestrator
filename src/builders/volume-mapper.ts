@@ -64,10 +64,7 @@ export function parseMount(input: MountInput): ResolvedMount {
   }
 
   if (!isAbsolute(parsed.target)) {
-    throw new InvalidMountError(
-      parsed.target,
-      "Container path (target) must be an absolute path",
-    );
+    throw new InvalidMountError(parsed.target, "Container path (target) must be an absolute path");
   }
 
   return {
@@ -90,18 +87,12 @@ function parseMountString(spec: string): ResolvedMount {
   const options = parts[2];
 
   if (!target || !isAbsolute(target)) {
-    throw new InvalidMountError(
-      spec,
-      "Container path must be an absolute path",
-    );
+    throw new InvalidMountError(spec, "Container path must be an absolute path");
   }
 
   const readOnly = options === "ro";
   if (options && options !== "ro") {
-    throw new InvalidMountError(
-      spec,
-      `Unknown option "${options}". Only "ro" is supported.`,
-    );
+    throw new InvalidMountError(spec, `Unknown option "${options}". Only "ro" is supported.`);
   }
 
   // Determine type: absolute source path → bind, otherwise → named volume

@@ -210,7 +210,9 @@ describe("copyToContainer", () => {
     fs.writeFileSync(filePath, "content");
 
     docker.getContainer.mockReturnValue({
-      putArchive: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+      putArchive: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
     await expect(
@@ -273,7 +275,9 @@ describe("copyFromContainer", () => {
 
   it("should throw FileNotFoundError for 404 from container", async () => {
     docker.getContainer.mockReturnValue({
-      getArchive: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+      getArchive: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
     await expect(
@@ -303,7 +307,9 @@ describe("copyBufferToContainer", () => {
 
   it("should throw ContainerNotFoundError for 404", async () => {
     docker.getContainer.mockReturnValue({
-      putArchive: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+      putArchive: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
     await expect(
@@ -334,12 +340,14 @@ describe("readFileFromContainer", () => {
 
   it("should throw FileNotFoundError for 404", async () => {
     docker.getContainer.mockReturnValue({
-      getArchive: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+      getArchive: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(
-      readFileFromContainer(docker, "container-1", "/nonexistent"),
-    ).rejects.toThrow(FileNotFoundError);
+    await expect(readFileFromContainer(docker, "container-1", "/nonexistent")).rejects.toThrow(
+      FileNotFoundError,
+    );
   });
 
   it("should throw PermissionError for permission denied", async () => {
@@ -347,8 +355,8 @@ describe("readFileFromContainer", () => {
       getArchive: vi.fn().mockRejectedValue(new Error("permission denied")),
     });
 
-    await expect(
-      readFileFromContainer(docker, "container-1", "/root/secret"),
-    ).rejects.toThrow(PermissionError);
+    await expect(readFileFromContainer(docker, "container-1", "/root/secret")).rejects.toThrow(
+      PermissionError,
+    );
   });
 });

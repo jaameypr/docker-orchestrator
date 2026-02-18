@@ -42,11 +42,7 @@ describe("Phase 6 Error Classes", () => {
 
   describe("UpdateFailedError", () => {
     it("should contain containerId and rollback status", () => {
-      const err = new UpdateFailedError(
-        "abc123",
-        "succeeded",
-        "port conflict",
-      );
+      const err = new UpdateFailedError("abc123", "succeeded", "port conflict");
       expect(err).toBeInstanceOf(DockerOrchestratorError);
       expect(err.name).toBe("UpdateFailedError");
       expect(err.code).toBe("UPDATE_FAILED");

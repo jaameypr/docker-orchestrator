@@ -16,9 +16,7 @@ describe("Retry", () => {
     });
 
     it("should apply jitter within ±25%", () => {
-      const delays = Array.from({ length: 50 }, () =>
-        calculateDelay(1, 1000, 2, 30000, true),
-      );
+      const delays = Array.from({ length: 50 }, () => calculateDelay(1, 1000, 2, 30000, true));
       const base = 2000;
       for (const d of delays) {
         expect(d).toBeGreaterThanOrEqual(base * 0.75);
@@ -39,10 +37,7 @@ describe("Retry", () => {
     });
 
     it("should retry on transient error and succeed", async () => {
-      const fn = vi
-        .fn()
-        .mockRejectedValueOnce(new ConnectionError("fail"))
-        .mockResolvedValue("ok");
+      const fn = vi.fn().mockRejectedValueOnce(new ConnectionError("fail")).mockResolvedValue("ok");
 
       const result = await retry(fn, {
         initialDelay: 10,
@@ -55,27 +50,24 @@ describe("Retry", () => {
     it("should throw after maxRetries exhausted", async () => {
       const fn = vi.fn().mockRejectedValue(new ConnectionError("fail"));
 
-      await expect(
-        retry(fn, { maxRetries: 2, initialDelay: 10, jitter: false }),
-      ).rejects.toThrow("fail");
+      await expect(retry(fn, { maxRetries: 2, initialDelay: 10, jitter: false })).rejects.toThrow(
+        "fail",
+      );
       expect(fn).toHaveBeenCalledTimes(3); // initial + 2 retries
     });
 
     it("should not retry non-transient errors", async () => {
       const fn = vi.fn().mockRejectedValue(new Error("not transient"));
 
-      await expect(
-        retry(fn, { maxRetries: 3, initialDelay: 10, jitter: false }),
-      ).rejects.toThrow("not transient");
+      await expect(retry(fn, { maxRetries: 3, initialDelay: 10, jitter: false })).rejects.toThrow(
+        "not transient",
+      );
       expect(fn).toHaveBeenCalledTimes(1); // no retry
     });
 
     it("should call onRetry callback", async () => {
       const onRetry = vi.fn();
-      const fn = vi
-        .fn()
-        .mockRejectedValueOnce(new ConnectionError("fail"))
-        .mockResolvedValue("ok");
+      const fn = vi.fn().mockRejectedValueOnce(new ConnectionError("fail")).mockResolvedValue("ok");
 
       await retry(fn, {
         initialDelay: 10,
@@ -84,11 +76,7 @@ describe("Retry", () => {
       });
 
       expect(onRetry).toHaveBeenCalledTimes(1);
-      expect(onRetry).toHaveBeenCalledWith(
-        1,
-        expect.any(ConnectionError),
-        10,
-      );
+      expect(onRetry).toHaveBeenCalledWith(1, expect.any(ConnectionError), 10);
     });
 
     it("should respect AbortSignal", async () => {
@@ -126,16 +114,12 @@ describe("Retry", () => {
     });
 
     it("should support custom retryOn predicate", async () => {
-      const fn = vi
-        .fn()
-        .mockRejectedValueOnce(new Error("retry me"))
-        .mockResolvedValue("ok");
+      const fn = vi.fn().mockRejectedValueOnce(new Error("retry me")).mockResolvedValue("ok");
 
       const result = await retry(fn, {
         initialDelay: 10,
         jitter: false,
-        retryOn: (err) =>
-          err instanceof Error && err.message === "retry me",
+        retryOn: (err) => err instanceof Error && err.message === "retry me",
       });
       expect(result).toBe("ok");
       expect(fn).toHaveBeenCalledTimes(2);

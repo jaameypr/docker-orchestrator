@@ -185,12 +185,8 @@ describe("buildResourceHostConfig", () => {
         deviceWriteBps: [{ path: "/dev/sda", rate: 524288 }],
       },
     });
-    expect(result.BlkioDeviceReadBps).toEqual([
-      { Path: "/dev/sda", Rate: 1048576 },
-    ]);
-    expect(result.BlkioDeviceWriteBps).toEqual([
-      { Path: "/dev/sda", Rate: 524288 },
-    ]);
+    expect(result.BlkioDeviceReadBps).toEqual([{ Path: "/dev/sda", Rate: 1048576 }]);
+    expect(result.BlkioDeviceWriteBps).toEqual([{ Path: "/dev/sda", Rate: 524288 }]);
   });
 
   it("should return empty object for empty config", () => {

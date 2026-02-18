@@ -34,20 +34,20 @@ describe("buildRestartPolicy", () => {
   });
 
   it("should throw when maxRetries used with 'always'", () => {
-    expect(() =>
-      buildRestartPolicy({ type: "always", maxRetries: 3 }),
-    ).toThrow(InvalidResourceConfigError);
+    expect(() => buildRestartPolicy({ type: "always", maxRetries: 3 })).toThrow(
+      InvalidResourceConfigError,
+    );
   });
 
   it("should throw when maxRetries used with 'no'", () => {
-    expect(() =>
-      buildRestartPolicy({ type: "no", maxRetries: 5 }),
-    ).toThrow(InvalidResourceConfigError);
+    expect(() => buildRestartPolicy({ type: "no", maxRetries: 5 })).toThrow(
+      InvalidResourceConfigError,
+    );
   });
 
   it("should throw when maxRetries used with 'unless-stopped'", () => {
-    expect(() =>
-      buildRestartPolicy({ type: "unless-stopped", maxRetries: 2 }),
-    ).toThrow(InvalidResourceConfigError);
+    expect(() => buildRestartPolicy({ type: "unless-stopped", maxRetries: 2 })).toThrow(
+      InvalidResourceConfigError,
+    );
   });
 });

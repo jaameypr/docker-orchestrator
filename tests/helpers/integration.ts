@@ -99,10 +99,7 @@ export async function cleanupContainers(
 /**
  * Removes all networks matching the test name prefix.
  */
-export async function cleanupNetworks(
-  docker: Docker,
-  prefix = TEST_PREFIX,
-): Promise<number> {
+export async function cleanupNetworks(docker: Docker, prefix = TEST_PREFIX): Promise<number> {
   let removed = 0;
 
   try {
@@ -127,10 +124,7 @@ export async function cleanupNetworks(
 /**
  * Removes all volumes matching the test name prefix.
  */
-export async function cleanupVolumes(
-  docker: Docker,
-  prefix = TEST_PREFIX,
-): Promise<number> {
+export async function cleanupVolumes(docker: Docker, prefix = TEST_PREFIX): Promise<number> {
   let removed = 0;
 
   try {
@@ -232,10 +226,7 @@ export function withTimeout<T>(
   operation = "Operation",
 ): Promise<T> {
   return new Promise((resolve, reject) => {
-    const timer = setTimeout(
-      () => reject(new Error(`${operation} timed out after ${ms}ms`)),
-      ms,
-    );
+    const timer = setTimeout(() => reject(new Error(`${operation} timed out after ${ms}ms`)), ms);
 
     promise
       .then((result) => {

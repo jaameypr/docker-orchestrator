@@ -48,9 +48,9 @@ describe("createVolume", () => {
 
   it("should create a volume with default local driver", async () => {
     docker.getVolume.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
     docker.createVolume.mockResolvedValue(fakeVolumeData);
 
@@ -68,9 +68,9 @@ describe("createVolume", () => {
 
   it("should pass driver opts and labels", async () => {
     docker.getVolume.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
     docker.createVolume.mockResolvedValue(fakeVolumeData);
 
@@ -94,9 +94,9 @@ describe("createVolume", () => {
       inspect: vi.fn().mockResolvedValue(fakeVolumeData),
     });
 
-    await expect(
-      createVolume(docker, { name: "my-volume" }),
-    ).rejects.toThrow(VolumeAlreadyExistsError);
+    await expect(createVolume(docker, { name: "my-volume" })).rejects.toThrow(
+      VolumeAlreadyExistsError,
+    );
   });
 });
 
@@ -127,26 +127,20 @@ describe("removeVolume", () => {
 
   it("should throw VolumeNotFoundError for 404", async () => {
     docker.getVolume.mockReturnValue({
-      remove: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      remove: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(removeVolume(docker, "nonexistent")).rejects.toThrow(
-      VolumeNotFoundError,
-    );
+    await expect(removeVolume(docker, "nonexistent")).rejects.toThrow(VolumeNotFoundError);
   });
 
   it("should throw VolumeInUseError for 409", async () => {
     docker.getVolume.mockReturnValue({
-      remove: vi.fn().mockRejectedValue(
-        Object.assign(new Error("volume in use"), { statusCode: 409 }),
-      ),
+      remove: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("volume in use"), { statusCode: 409 })),
     });
 
-    await expect(removeVolume(docker, "in-use-vol")).rejects.toThrow(
-      VolumeInUseError,
-    );
+    await expect(removeVolume(docker, "in-use-vol")).rejects.toThrow(VolumeInUseError);
   });
 });
 
@@ -173,14 +167,12 @@ describe("inspectVolume", () => {
 
   it("should throw VolumeNotFoundError for 404", async () => {
     docker.getVolume.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
-    await expect(inspectVolume(docker, "nonexistent")).rejects.toThrow(
-      VolumeNotFoundError,
-    );
+    await expect(inspectVolume(docker, "nonexistent")).rejects.toThrow(VolumeNotFoundError);
   });
 });
 
@@ -269,9 +261,9 @@ describe("volumeExists", () => {
 
   it("should return false for non-existing volume", async () => {
     docker.getVolume.mockReturnValue({
-      inspect: vi.fn().mockRejectedValue(
-        Object.assign(new Error("not found"), { statusCode: 404 }),
-      ),
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
     });
 
     const exists = await volumeExists(docker, "nonexistent");

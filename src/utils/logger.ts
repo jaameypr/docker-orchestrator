@@ -34,9 +34,7 @@ const LOG_LEVELS: Record<LogLevel, number> = {
 
 const SENSITIVE_PATTERNS = /secret|password|key|token|auth|credential/i;
 
-export function redactSensitiveData(
-  context: LogContext,
-): LogContext {
+export function redactSensitiveData(context: LogContext): LogContext {
   const result: LogContext = {};
   for (const [key, value] of Object.entries(context)) {
     if (SENSITIVE_PATTERNS.test(key)) {
@@ -100,18 +98,26 @@ export class ConsoleLogger implements Logger {
         message,
         ...redacted,
       };
-      const consoleFn = level === "error" ? console.error :
-                         level === "warn" ? console.warn :
-                         level === "debug" || level === "trace" ? console.debug :
-                         console.log;
+      const consoleFn =
+        level === "error"
+          ? console.error
+          : level === "warn"
+            ? console.warn
+            : level === "debug" || level === "trace"
+              ? console.debug
+              : console.log;
       consoleFn(JSON.stringify(entry));
     } else {
       const prefix = `[${new Date().toISOString()}] [${level.toUpperCase()}]`;
       const contextStr = redacted ? ` ${JSON.stringify(redacted)}` : "";
-      const consoleFn = level === "error" ? console.error :
-                         level === "warn" ? console.warn :
-                         level === "debug" || level === "trace" ? console.debug :
-                         console.log;
+      const consoleFn =
+        level === "error"
+          ? console.error
+          : level === "warn"
+            ? console.warn
+            : level === "debug" || level === "trace"
+              ? console.debug
+              : console.log;
       consoleFn(`${prefix} ${message}${contextStr}`);
     }
   }

@@ -122,13 +122,8 @@ function expandPortRange(
   const [hostStart, hostEnd] = hostRange.split("-").map(Number);
   const [containerStart, containerEnd] = containerRange.split("-").map(Number);
 
-  if (
-    isNaN(hostStart) || isNaN(hostEnd) ||
-    isNaN(containerStart) || isNaN(containerEnd)
-  ) {
-    throw new Error(
-      `Invalid port range: ${hostRange}:${containerRange}`,
-    );
+  if (isNaN(hostStart) || isNaN(hostEnd) || isNaN(containerStart) || isNaN(containerEnd)) {
+    throw new Error(`Invalid port range: ${hostRange}:${containerRange}`);
   }
 
   const hostCount = hostEnd - hostStart + 1;
@@ -248,9 +243,7 @@ async function findAvailablePort(startPort: number, host = "0.0.0.0"): Promise<n
  * Throws PortAlreadyInUseError if a port is already in use.
  * Skips ports with hostPort=0 (auto-assign).
  */
-export async function validatePortAvailability(
-  mappings: ResolvedPortMapping[],
-): Promise<void> {
+export async function validatePortAvailability(mappings: ResolvedPortMapping[]): Promise<void> {
   for (const m of mappings) {
     if (m.hostPort === 0) continue; // auto-assign, skip check
 

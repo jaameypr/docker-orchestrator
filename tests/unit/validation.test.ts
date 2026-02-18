@@ -22,27 +22,21 @@ describe("validateResourceLimits", () => {
     const warnings = validateResourceLimits({
       memory: { limit: 1048576 }, // 1MB
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "memory-below-minimum" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "memory-below-minimum" }));
   });
 
   it("should warn when oom kill disabled", () => {
     const warnings = validateResourceLimits({
       memory: { oomKillDisable: true },
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "oom-kill-disabled" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "oom-kill-disabled" }));
   });
 
   it("should warn when nanoCpus combined with shares/period/quota", () => {
     const warnings = validateResourceLimits({
       cpu: { nanoCpus: 1.5, shares: 512 },
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "nano-cpus-with-shares" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "nano-cpus-with-shares" }));
   });
 
   it("should not warn for valid config", () => {
@@ -63,30 +57,22 @@ describe("validateResourceLimits", () => {
 describe("validateSecurityConfig", () => {
   it("should warn for root user", () => {
     const warnings = validateSecurityConfig({ user: "root" });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "root-user" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "root-user" }));
   });
 
   it("should warn for user 0", () => {
     const warnings = validateSecurityConfig({ user: "0" });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "root-user" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "root-user" }));
   });
 
   it("should warn for user 0:0", () => {
     const warnings = validateSecurityConfig({ user: "0:0" });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "root-user" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "root-user" }));
   });
 
   it("should warn when no user set", () => {
     const warnings = validateSecurityConfig({});
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "no-user-set" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "no-user-set" }));
   });
 
   it("should not warn about no-user-set when privileged", () => {
@@ -107,9 +93,7 @@ describe("validateSecurityConfig", () => {
       user: "node",
       capAdd: ["SYS_ADMIN"],
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "dangerous-capability" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "dangerous-capability" }));
   });
 
   it("should warn for multiple dangerous capabilities", () => {
@@ -117,9 +101,7 @@ describe("validateSecurityConfig", () => {
       user: "node",
       capAdd: ["SYS_ADMIN", "NET_ADMIN"],
     });
-    const dangerousWarnings = warnings.filter(
-      (w) => w.code === "dangerous-capability",
-    );
+    const dangerousWarnings = warnings.filter((w) => w.code === "dangerous-capability");
     expect(dangerousWarnings.length).toBe(2);
   });
 
@@ -128,9 +110,7 @@ describe("validateSecurityConfig", () => {
       user: "node",
       seccomp: "unconfined",
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "seccomp-unconfined" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "seccomp-unconfined" }));
   });
 
   it("should warn for readonly without tmpfs", () => {
@@ -139,9 +119,7 @@ describe("validateSecurityConfig", () => {
       readonlyRootfs: true,
       autoTmpfs: false,
     });
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "readonly-without-tmpfs" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "readonly-without-tmpfs" }));
   });
 
   it("should not warn when user is set and config is secure", () => {
@@ -176,23 +154,17 @@ describe("validateRestartPolicy", () => {
 describe("validateProductionConfig", () => {
   it("should warn when no memory limit in production", () => {
     const warnings = validateProductionConfig({}, undefined);
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "no-memory-limit" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "no-memory-limit" }));
   });
 
   it("should warn when no CPU limit in production", () => {
     const warnings = validateProductionConfig({}, undefined);
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "no-cpu-limit" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "no-cpu-limit" }));
   });
 
   it("should warn when no PID limit in production", () => {
     const warnings = validateProductionConfig({}, undefined);
-    expect(warnings).toContainEqual(
-      expect.objectContaining({ code: "no-pid-limit" }),
-    );
+    expect(warnings).toContainEqual(expect.objectContaining({ code: "no-pid-limit" }));
   });
 
   it("should not warn when limits are set", () => {

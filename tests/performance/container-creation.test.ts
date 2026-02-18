@@ -54,22 +54,12 @@ describePerf("Performance: Container Creation", () => {
     // - 10 containers sequentially → average time
     // - 50 containers parallel → total time and error rate
     // - Target: 50 containers in < 60 seconds
-    recordResult(
-      "sequential-creation",
-      "placeholder",
-      0,
-      "ms",
-    );
+    recordResult("sequential-creation", "placeholder", 0, "ms");
     expect(true).toBe(true);
   });
 
   it("placeholder: parallel container creation benchmark", () => {
-    recordResult(
-      "parallel-creation",
-      "placeholder",
-      0,
-      "ms",
-    );
+    recordResult("parallel-creation", "placeholder", 0, "ms");
     expect(true).toBe(true);
   });
 });

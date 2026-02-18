@@ -102,9 +102,7 @@ describe("pullImage", () => {
     await pullImage(docker, "alpine:latest", callback);
 
     expect(callback).toHaveBeenCalledTimes(3);
-    expect(callback).toHaveBeenCalledWith(
-      expect.objectContaining({ status: "Downloading" }),
-    );
+    expect(callback).toHaveBeenCalledWith(expect.objectContaining({ status: "Downloading" }));
   });
 
   it("should reject on pull error", async () => {

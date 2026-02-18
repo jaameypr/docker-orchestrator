@@ -57,8 +57,7 @@ export function validateResourceLimits(config: ResourceConfig): ConfigWarning[] 
 
     // Swap below memory
     if (mem.swap !== undefined && limitBytes !== undefined) {
-      const swapVal =
-        typeof mem.swap === "string" ? parseMemoryString(mem.swap) : mem.swap;
+      const swapVal = typeof mem.swap === "string" ? parseMemoryString(mem.swap) : mem.swap;
       if (swapVal !== -1 && swapVal < 0) {
         warnings.push({
           level: "critical",
@@ -85,9 +84,7 @@ export function validateResourceLimits(config: ResourceConfig): ConfigWarning[] 
     // NanoCPUs and shares/period/quota are mutually exclusive
     const hasNanoCpus = cpu.nanoCpus !== undefined;
     const hasCfsControls =
-      cpu.shares !== undefined ||
-      cpu.period !== undefined ||
-      cpu.quota !== undefined;
+      cpu.shares !== undefined || cpu.period !== undefined || cpu.quota !== undefined;
 
     if (hasNanoCpus && hasCfsControls) {
       warnings.push({
@@ -209,8 +206,7 @@ export function validateProductionConfig(
     warnings.push({
       level: "warn",
       code: "no-memory-limit",
-      message:
-        "No memory limit set in production mode. Containers can consume unlimited memory.",
+      message: "No memory limit set in production mode. Containers can consume unlimited memory.",
     });
   }
 
@@ -219,8 +215,7 @@ export function validateProductionConfig(
     warnings.push({
       level: "warn",
       code: "no-cpu-limit",
-      message:
-        "No CPU limit set in production mode. Containers can consume unlimited CPU.",
+      message: "No CPU limit set in production mode. Containers can consume unlimited CPU.",
     });
   }
 
@@ -229,8 +224,7 @@ export function validateProductionConfig(
     warnings.push({
       level: "warn",
       code: "no-pid-limit",
-      message:
-        "No PID limit set in production mode. Container is vulnerable to fork bombs.",
+      message: "No PID limit set in production mode. Container is vulnerable to fork bombs.",
     });
   }
 

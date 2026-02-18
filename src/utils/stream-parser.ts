@@ -23,7 +23,9 @@ export interface ParsedFrame {
  * Parses the 8-byte Docker multiplex stream header.
  * Returns the stream type and payload length, or null if the buffer is too small.
  */
-export function parseHeader(header: Buffer): { streamType: StreamType; payloadLength: number } | null {
+export function parseHeader(
+  header: Buffer,
+): { streamType: StreamType; payloadLength: number } | null {
   if (header.length < HEADER_SIZE) {
     return null;
   }
@@ -132,9 +134,7 @@ export function parseDockerTimestamp(raw: string): Date | null {
   // Docker uses RFC 3339 with nanosecond precision.
   // JavaScript Date only supports millisecond precision, so we truncate nanos.
   // Format: "2024-01-15T10:30:00.123456789Z"
-  const match = raw.match(
-    /^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/,
-  );
+  const match = raw.match(/^(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})(?:\.(\d+))?(Z|[+-]\d{2}:\d{2})$/);
   if (!match) {
     return null;
   }

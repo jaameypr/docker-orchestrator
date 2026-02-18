@@ -1,10 +1,6 @@
 import type Docker from "dockerode";
 import { mapDockerError } from "../errors/mapping.js";
-import {
-  VolumeNotFoundError,
-  VolumeInUseError,
-  VolumeAlreadyExistsError,
-} from "../errors/base.js";
+import { VolumeNotFoundError, VolumeInUseError, VolumeAlreadyExistsError } from "../errors/base.js";
 import {
   VolumeCreateOptionsSchema,
   type VolumeCreateOptions,
@@ -93,10 +89,7 @@ export async function removeVolume(
 /**
  * Returns detailed info about a volume.
  */
-export async function inspectVolume(
-  docker: Docker,
-  volumeName: string,
-): Promise<VolumeInfo> {
+export async function inspectVolume(docker: Docker, volumeName: string): Promise<VolumeInfo> {
   try {
     const data = await docker.getVolume(volumeName).inspect();
     return mapVolumeData(data as unknown as Record<string, unknown>);
@@ -128,9 +121,7 @@ export async function listVolumes(
     if (filter?.dangling !== undefined) filters.dangling = [String(filter.dangling)];
 
     const result = await docker.listVolumes({
-      filters: Object.keys(filters).length > 0
-        ? JSON.stringify(filters)
-        : undefined,
+      filters: Object.keys(filters).length > 0 ? JSON.stringify(filters) : undefined,
     });
 
     const volumes = result.Volumes ?? [];
@@ -147,9 +138,7 @@ export async function listVolumes(
 /**
  * Removes unused volumes and returns the space reclaimed.
  */
-export async function pruneVolumes(
-  docker: Docker,
-): Promise<PruneVolumesResult> {
+export async function pruneVolumes(docker: Docker): Promise<PruneVolumesResult> {
   try {
     const result = await docker.pruneVolumes();
     return {
@@ -168,10 +157,7 @@ export async function pruneVolumes(
 /**
  * Checks if a volume exists. Returns true/false.
  */
-export async function volumeExists(
-  docker: Docker,
-  volumeName: string,
-): Promise<boolean> {
+export async function volumeExists(docker: Docker, volumeName: string): Promise<boolean> {
   try {
     await docker.getVolume(volumeName).inspect();
     return true;

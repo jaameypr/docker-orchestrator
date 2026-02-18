@@ -28,9 +28,7 @@ describe("ResilientStream", () => {
 
   it("should emit data from underlying stream", async () => {
     const data: string[] = [];
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(["hello", "world"]));
+    const factory = vi.fn().mockResolvedValue(createMockStream(["hello", "world"]));
 
     stream = new ResilientStream(factory, {
       maxReconnectAttempts: 0,
@@ -45,9 +43,7 @@ describe("ResilientStream", () => {
 
   it("should emit close when stream ends normally", async () => {
     const closeHandler = vi.fn();
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(["data"]));
+    const factory = vi.fn().mockResolvedValue(createMockStream(["data"]));
 
     stream = new ResilientStream(factory, {
       maxReconnectAttempts: 0,
@@ -86,9 +82,7 @@ describe("ResilientStream", () => {
   });
 
   it("should not reconnect after destroy()", async () => {
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(["data"], 0));
+    const factory = vi.fn().mockResolvedValue(createMockStream(["data"], 0));
 
     stream = new ResilientStream(factory, {
       maxReconnectAttempts: 5,
@@ -104,9 +98,7 @@ describe("ResilientStream", () => {
   });
 
   it("should track health metrics", async () => {
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(["data"]));
+    const factory = vi.fn().mockResolvedValue(createMockStream(["data"]));
 
     stream = new ResilientStream(factory);
     await stream.start();
@@ -120,9 +112,7 @@ describe("ResilientStream", () => {
 
   it("should drop messages when buffer is full", async () => {
     const data = Array.from({ length: 20 }, (_, i) => `msg-${i}`);
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(data));
+    const factory = vi.fn().mockResolvedValue(createMockStream(data));
 
     stream = new ResilientStream(factory, {
       bufferSize: 5,
@@ -141,9 +131,7 @@ describe("ResilientStream", () => {
 
   it("should emit warning on dropped messages", async () => {
     const data = Array.from({ length: 10 }, (_, i) => `msg-${i}`);
-    const factory = vi
-      .fn()
-      .mockResolvedValue(createMockStream(data));
+    const factory = vi.fn().mockResolvedValue(createMockStream(data));
 
     const warningHandler = vi.fn();
     stream = new ResilientStream(factory, {

@@ -192,17 +192,11 @@ describe("toDockerBinds", () => {
       { type: "bind", source: "/host2", target: "/container2", readOnly: true },
       { type: "volume", source: "vol", target: "/data", readOnly: false },
     ]);
-    expect(binds).toEqual([
-      "/host:/container",
-      "/host2:/container2:ro",
-      "vol:/data",
-    ]);
+    expect(binds).toEqual(["/host:/container", "/host2:/container2:ro", "vol:/data"]);
   });
 
   it("should skip tmpfs mounts", () => {
-    const binds = toDockerBinds([
-      { type: "tmpfs", source: "", target: "/tmp", readOnly: false },
-    ]);
+    const binds = toDockerBinds([{ type: "tmpfs", source: "", target: "/tmp", readOnly: false }]);
     expect(binds).toEqual([]);
   });
 });

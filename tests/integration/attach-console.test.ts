@@ -1,11 +1,7 @@
 import { describe, it, expect, afterAll, beforeAll } from "vitest";
 import { existsSync } from "node:fs";
 import Docker from "dockerode";
-import {
-  createContainer,
-  startContainer,
-  removeContainer,
-} from "../../src/core/container.js";
+import { createContainer, startContainer, removeContainer } from "../../src/core/container.js";
 import { buildContainerConfig } from "../../src/builders/config-builder.js";
 import { attachContainer, sendCommand } from "../../src/core/attach.js";
 import { ContainerConsole, createConsole } from "../../src/core/console.js";
