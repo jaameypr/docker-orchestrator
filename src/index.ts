@@ -11,6 +11,33 @@ export {
   listContainers,
 } from "./core/container.js";
 
+// Core – Exec
+export {
+  createExec,
+  startExec,
+  executeCommand,
+  executeInteractive,
+  executeScript,
+} from "./core/exec.js";
+
+// Core – Files
+export {
+  createTarFromPath,
+  createTarFromBuffer,
+  extractTarToPath,
+  copyToContainer,
+  copyFromContainer,
+  copyBufferToContainer,
+  readFileFromContainer,
+} from "./core/files.js";
+
+// Core – Container Recreation
+export {
+  extractContainerConfig,
+  mergeContainerConfig,
+  recreateContainer,
+} from "./core/container-recreation.js";
+
 // Builders
 export { buildContainerConfig, ContainerConfigSchema } from "./builders/config-builder.js";
 export type { ContainerConfig } from "./builders/config-builder.js";
@@ -23,6 +50,13 @@ export {
   ImageNotFoundError,
   ContainerAlreadyRunningError,
   ContainerAlreadyStoppedError,
+  CommandFailedError,
+  CommandTimeoutError,
+  FileNotFoundError,
+  ContainerNotRunningError,
+  PermissionError,
+  RecreationFailedError,
+  CriticalRecreationError,
   mapDockerError,
 } from "./errors/index.js";
 
@@ -91,3 +125,30 @@ export type {
   EventSubscription,
 } from "./types/events.js";
 export { EventFilterSchema } from "./types/events.js";
+
+// Types – Exec
+export type {
+  ExecOptions,
+  ExecResult,
+  ExecInspectResult,
+  InteractiveExecHandle,
+  SimpleExecOptions,
+  InteractiveExecOptions,
+} from "./types/exec.js";
+export { ExecOptionsSchema, SimpleExecOptionsSchema, InteractiveExecOptionsSchema } from "./types/exec.js";
+
+// Types – Files
+export type {
+  CopyToContainerOptions,
+  CopyFromContainerOptions,
+} from "./types/files.js";
+export { CopyToContainerOptionsSchema, CopyFromContainerOptionsSchema } from "./types/files.js";
+
+// Types – Recreation
+export type {
+  ExtractedContainerConfig,
+  RecreationOptions,
+  RecreationResult,
+  RollbackStatus,
+} from "./types/recreation.js";
+export { RecreationOptionsSchema } from "./types/recreation.js";

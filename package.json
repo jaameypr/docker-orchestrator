@@ -47,6 +47,7 @@
     "@eslint/js": "^9.0.0",
     "@types/dockerode": "^3.3.31",
     "@types/node": "^20.0.0",
+    "@types/tar-stream": "^3.1.4",
     "eslint": "^9.0.0",
     "prettier": "^3.3.0",
     "tsup": "^8.0.0",
@@ -57,6 +58,7 @@
   "dependencies": {
     "dockerode": "^4.0.0",
     "eventemitter3": "^5.0.0",
+    "tar-stream": "^3.1.7",
     "zod": "^3.23.0"
   }
 }
