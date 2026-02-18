@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+jobs:
+  # ─── Stage 1: Lint & Typecheck ───────────────────────────────────────
+  lint:
+    name: Lint & Typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Format check
+        run: npm run format:check
+
+      - name: Typecheck
+        run: npm run typecheck
+
+  # ─── Stage 2: Unit Tests ────────────────────────────────────────────
+  unit-tests:
+    name: Unit Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: ["18", "20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Run unit tests with coverage
+        run: npm run test:unit -- --coverage
+
+      - name: Upload coverage artifact
+        if: matrix.node-version == '20'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-unit
+          path: coverage/unit/
+          retention-days: 14
+
+  # ─── Stage 3: Integration Tests (Docker-in-Docker) ──────────────────
+  integration-tests:
+    name: Integration Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Wait for Docker daemon
+        run: |
+          timeout 30 sh -c 'until docker info > /dev/null 2>&1; do sleep 1; done'
+
+      - name: Pull test images
+        run: |
+          docker pull alpine:latest
+          docker pull nginx:latest
+          docker pull busybox:latest
+
+      - name: Run integration tests
+        run: npm run test:integration
+
+  # ─── Stage 4: Performance Tests ─────────────────────────────────────
+  performance-tests:
+    name: Performance Tests
+    needs: [unit-tests, integration-tests]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    services:
+      docker:
+        image: docker:dind
+        options: --privileged
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Wait for Docker daemon
+        run: |
+          timeout 30 sh -c 'until docker info > /dev/null 2>&1; do sleep 1; done'
+
+      - name: Pull test images
+        run: docker pull alpine:latest
+
+      - name: Run performance tests
+        run: npm run test:perf
+
+      - name: Upload performance results
+        uses: actions/upload-artifact@v4
+        with:
+          name: performance-results
+          path: perf-results/
+          retention-days: 30
+
+  # ─── Stage 5: Build ─────────────────────────────────────────────────
+  build:
+    name: Build
+    needs: [unit-tests]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - name: Build
+        run: npm run build
+
+      - name: Verify dist output
+        run: |
+          test -f dist/esm/index.js
+          test -f dist/cjs/index.js
+          test -f dist/esm/index.d.ts
