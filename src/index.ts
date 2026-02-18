@@ -26,7 +26,34 @@ export {
   mapDockerError,
 } from "./errors/index.js";
 
-// Types
+// Monitoring – Logs
+export { getContainerLogs, tailLogs, streamLogs } from "./monitoring/logs.js";
+
+// Monitoring – Metrics
+export {
+  getMetrics,
+  streamMetrics,
+  calculateCpu,
+  calculateMemory,
+  calculateNetwork,
+  calculateBlockIO,
+  computeMetrics,
+} from "./monitoring/metrics.js";
+
+// Monitoring – Events
+export { subscribeEvents } from "./monitoring/events.js";
+
+// Utils
+export {
+  parseHeader,
+  parseFrames,
+  demuxStream,
+  parseDockerTimestamp,
+  formatBytes,
+  StreamType,
+} from "./utils/stream-parser.js";
+
+// Types – Core
 export type {
   ClientOptions,
   DockerVersionInfo,
@@ -37,3 +64,30 @@ export type {
   ContainerInspectResult,
 } from "./types/index.js";
 export { ClientOptionsSchema } from "./types/index.js";
+
+// Types – Logs
+export type { LogOptions, LogEntry, LogStream, LogStreamEvents } from "./types/logs.js";
+export { LogOptionsSchema } from "./types/logs.js";
+
+// Types – Metrics
+export type {
+  CpuMetrics,
+  MemoryMetrics,
+  NetworkMetrics,
+  BlockIOMetrics,
+  ContainerMetrics,
+  MetricsStream,
+  MetricsStreamEvents,
+  DockerStatsRaw,
+} from "./types/metrics.js";
+
+// Types – Events
+export type {
+  DockerEventType,
+  EventFilter,
+  DockerEventActor,
+  DockerEvent,
+  DockerEventStreamEvents,
+  EventSubscription,
+} from "./types/events.js";
+export { EventFilterSchema } from "./types/events.js";
