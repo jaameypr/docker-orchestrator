@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach } from "vitest";
 import { PassThrough } from "node:stream";
 import { ContainerConsole } from "../../src/core/console.js";
 import { ConsoleDisconnectedError } from "../../src/errors/base.js";
@@ -39,7 +39,6 @@ function createMockDocker(options?: {
 
 describe("ContainerConsole", () => {
   let consoleInstance: ContainerConsole;
-  let mockStream: PassThrough;
 
   afterEach(() => {
     if (consoleInstance) {

@@ -1,5 +1,4 @@
 import type Docker from "dockerode";
-import type { Duplex, Readable } from "node:stream";
 import EventEmitter from "eventemitter3";
 import { attachContainer, type AttachResult } from "./attach.js";
 import {

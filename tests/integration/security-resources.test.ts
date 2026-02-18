@@ -7,7 +7,6 @@ import {
   startContainer,
   stopContainer,
   removeContainer,
-  inspectContainer,
 } from "../../src/core/container.js";
 import { executeCommand } from "../../src/core/exec.js";
 import { imageExists, pullImage } from "../../src/core/image.js";
@@ -218,7 +217,7 @@ describeDocker("Phase 5: Security & Resource Limits Integration", () => {
 
   describe("Security Presets", () => {
     it("should apply hardened security preset", async () => {
-      const { config, warnings } = buildContainerConfig({
+      const { config } = buildContainerConfig({
         image: TEST_IMAGE,
         name: `${TEST_PREFIX}hardened-${Date.now()}`,
         cmd: ["sleep", "30"],

@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, beforeAll } from "vitest";
+import { describe, it, expect, afterAll } from "vitest";
 import { existsSync } from "node:fs";
 import Docker from "dockerode";
 import {

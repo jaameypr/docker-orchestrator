@@ -1,10 +1,9 @@
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import {
   buildSecurityConfig,
   applySecurityPreset,
   validateCapabilities,
 } from "../../src/core/security.js";
-import { InvalidSecurityConfigError, SeccompProfileNotFoundError } from "../../src/errors/base.js";
 
 describe("buildSecurityConfig", () => {
   it("should set user", () => {

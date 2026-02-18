@@ -15,18 +15,9 @@ vi.mock("node:fs", () => ({
 import Docker from "dockerode";
 import { existsSync } from "node:fs";
 import { createClient } from "../../src/core/client.js";
-import { ConnectionError, DockerOrchestratorError } from "../../src/errors/base.js";
+import { ConnectionError } from "../../src/errors/base.js";
 
 const mockExistsSync = vi.mocked(existsSync);
-
-function getMockDocker() {
-  // The last instance created by the mock constructor
-  const instance = vi.mocked(Docker).mock.results.at(-1)?.value;
-  return {
-    ping: vi.mocked(instance.ping),
-    version: vi.mocked(instance.version),
-  };
-}
 
 const fakeVersionInfo = {
   Version: "24.0.7",
@@ -44,7 +35,7 @@ describe("createClient", () => {
   it("should auto-detect socket path on Linux", async () => {
     mockExistsSync.mockReturnValue(true);
 
-    const docker = getMockDockerAfterConstruction(fakeVersionInfo);
+    getMockDockerAfterConstruction(fakeVersionInfo);
 
     const result = await createClient();
     expect(result.docker).toBeDefined();
@@ -59,14 +50,14 @@ describe("createClient", () => {
   });
 
   it("should use provided socketPath", async () => {
-    const docker = getMockDockerAfterConstruction(fakeVersionInfo);
+    getMockDockerAfterConstruction(fakeVersionInfo);
 
     const result = await createClient({ socketPath: "/custom/docker.sock" });
     expect(result.versionInfo.version).toBe("24.0.7");
   });
 
   it("should use host/port for TCP connection", async () => {
-    const docker = getMockDockerAfterConstruction(fakeVersionInfo);
+    getMockDockerAfterConstruction(fakeVersionInfo);
 
     const result = await createClient({ host: "localhost", port: 2375 });
     expect(result.versionInfo.version).toBe("24.0.7");
@@ -111,7 +102,7 @@ describe("createClient", () => {
   });
 
   it("should accept TLS options with host", async () => {
-    const docker = getMockDockerAfterConstruction(fakeVersionInfo);
+    getMockDockerAfterConstruction(fakeVersionInfo);
 
     const result = await createClient({
       host: "remote-host",

@@ -6,7 +6,6 @@ import {
   SecurityPresets,
   CapabilityProfiles,
   LINUX_CAPABILITIES,
-  type CapabilityProfileName,
 } from "../types/security.js";
 
 // ---------------------------------------------------------------------------

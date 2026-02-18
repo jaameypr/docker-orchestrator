@@ -4,10 +4,8 @@ import {
   HealthCheckConfigSchema,
   type HealthCheckConfig,
   type HealthCheckResult,
-  type HealthStatus,
   type HealthCheckEvents,
 } from "../types/health-check.js";
-import { HealthCheckTimeoutError } from "../errors/base.js";
 import { mapDockerError } from "../errors/mapping.js";
 import { ContainerNotFoundError } from "../errors/base.js";
 import http from "http";

@@ -1,6 +1,6 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Orchestrator, createOrchestrator } from "../../src/core/orchestrator.js";
-import { DeploymentFailedError, ImagePullError } from "../../src/errors/base.js";
+import { DeploymentFailedError } from "../../src/errors/base.js";
 
 // ---------------------------------------------------------------------------
 // Mock Docker Client

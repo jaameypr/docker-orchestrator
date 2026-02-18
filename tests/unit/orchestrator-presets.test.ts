@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { Orchestrator } from "../../src/core/orchestrator.js";
 import { definePreset } from "../../src/core/presets.js";
 
@@ -58,8 +58,8 @@ function createMockContainer(
     stop: vi.fn().mockResolvedValue(undefined),
     remove: vi.fn().mockResolvedValue(undefined),
     rename: vi.fn().mockResolvedValue(undefined),
-    attach: vi.fn().mockResolvedValue(new (require("node:stream").PassThrough)()),
-    logs: vi.fn().mockResolvedValue(new (require("node:stream").PassThrough)()),
+    attach: vi.fn().mockResolvedValue(new (await import("node:stream")).PassThrough()),
+    logs: vi.fn().mockResolvedValue(new (await import("node:stream")).PassThrough()),
   };
 }
 

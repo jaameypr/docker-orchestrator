@@ -107,7 +107,7 @@ describeDocker("Integration: Stack Deployment", () => {
       },
     } as StackConfig;
 
-    const result = await deployStack(docker, stackConfig);
+    await deployStack(docker, stackConfig);
 
     // Should have created the default network
     const expectedNetName = `${stackName}_default`;

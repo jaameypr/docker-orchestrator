@@ -1,8 +1,7 @@
-import { describe, it, expect, afterAll, afterEach } from "vitest";
+import { describe, it, expect, afterEach } from "vitest";
 import { existsSync } from "node:fs";
 import Docker from "dockerode";
-import { Orchestrator, createOrchestrator } from "../../src/core/orchestrator.js";
-import { DeploymentFailedError } from "../../src/errors/base.js";
+import { createOrchestrator } from "../../src/core/orchestrator.js";
 
 const TEST_IMAGE = "nginx:alpine";
 const TEST_PREFIX = "docker-orch-integ-";

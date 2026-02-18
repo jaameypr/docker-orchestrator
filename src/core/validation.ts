@@ -1,9 +1,9 @@
 import type { ResourceConfig } from "../types/resources.js";
 import type { SecurityConfig } from "../types/security.js";
 import type { RestartPolicy } from "../types/restart.js";
-import type { ConfigWarning, WarningCode } from "../types/warnings.js";
+import type { ConfigWarning } from "../types/warnings.js";
 import { DANGEROUS_CAPABILITIES } from "../types/security.js";
-import { parseMemoryString, parseCpuString } from "./resource-limits.js";
+import { parseMemoryString } from "./resource-limits.js";
 
 // ---------------------------------------------------------------------------
 // Docker minimum memory limit: 6MB
@@ -200,7 +200,7 @@ export function validateRestartPolicy(config: RestartPolicy): ConfigWarning[] {
 
 export function validateProductionConfig(
   resources?: ResourceConfig,
-  security?: SecurityConfig,
+  _security?: SecurityConfig,
 ): ConfigWarning[] {
   const warnings: ConfigWarning[] = [];
 

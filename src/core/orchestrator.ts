@@ -19,10 +19,7 @@ import {
 } from "../types/orchestrator.js";
 import type { ConfigWarning } from "../types/warnings.js";
 import type { ResolvedPortMapping } from "../types/ports.js";
-import {
-  waitForHealthy,
-  buildDockerHealthcheck,
-} from "./health-check.js";
+import { waitForHealthy } from "./health-check.js";
 import { imageExists, pullImage } from "./image.js";
 import { createNetwork, listNetworks } from "./network.js";
 import { volumeExists, createVolume } from "./volume.js";
@@ -52,7 +49,6 @@ import { sendCommand, sendCommands } from "./attach.js";
 import { ContainerConsole, createConsole } from "./console.js";
 import { PresetRegistry, mergePresetConfig, PRESET_LABEL } from "./presets.js";
 import type { ConsoleOptions } from "../types/attach.js";
-import { streamLogs } from "../monitoring/logs.js";
 
 // ---------------------------------------------------------------------------
 // Orchestrator Labels
@@ -60,7 +56,6 @@ import { streamLogs } from "../monitoring/logs.js";
 
 const MANAGED_LABEL = "orchestrator.managed";
 const DEPLOYED_AT_LABEL = "orchestrator.deployed-at";
-const STACK_LABEL = "orchestrator.stack";
 
 // ---------------------------------------------------------------------------
 // Orchestrator Class
@@ -210,7 +205,8 @@ export class Orchestrator {
       presetName = userConfig.preset;
       onProgress?.("preset", `Loading preset "${presetName}"`);
       const preset = this._presets.get(presetName);
-      const { preset: _p, ...userOverrides } = userConfig;
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { preset: _presetKey, ...userOverrides } = userConfig;
       resolvedConfig = mergePresetConfig(
         preset.config as Partial<ContainerConfig>,
         userOverrides,
@@ -879,8 +875,8 @@ export class Orchestrator {
     }
 
     if (config.waitForExit) {
-      const deadline = Date.now() + timeout;
-      while (Date.now() < deadline) {
+      const stopDeadline = Date.now() + timeout;
+      while (Date.now() < stopDeadline) {
         try {
           const data = (await this.docker
             .getContainer(containerId)
@@ -908,7 +904,6 @@ export class Orchestrator {
     onProgress?: ProgressCallback,
   ): Promise<void> {
     const timeout = readyCheck.timeout ?? 60000;
-    const deadline = Date.now() + timeout;
 
     // Log match based ready check
     if (readyCheck.logMatch) {
