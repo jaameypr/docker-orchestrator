@@ -38,16 +38,12 @@ export async function createVolume(
   }
 
   try {
-    await docker.createVolume({
+    const data = await docker.createVolume({
       Name: config.name,
       Driver: config.driver,
       DriverOpts: config.driverOpts,
       Labels: config.labels,
     });
-
-    // Inspect the created volume to get full info
-    // (createVolume returns a Volume object, not VolumeInfo)
-    const data = await docker.getVolume(config.name).inspect();
     return mapVolumeData(data as unknown as Record<string, unknown>);
   } catch (err) {
     const error = err as { statusCode?: number; message?: string };
