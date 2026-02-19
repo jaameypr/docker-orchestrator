@@ -143,7 +143,11 @@ export async function listVolumes(
  */
 export async function pruneVolumes(docker: Docker): Promise<PruneVolumesResult> {
   try {
-    const result = await docker.pruneVolumes();
+    // Docker 23+ only prunes anonymous volumes by default; pass all:true to
+    // also prune unused named volumes (Docker API 1.42+, safe on older daemons).
+    const result = await docker.pruneVolumes({
+      filters: JSON.stringify({ all: ["true"] }),
+    });
     return {
       volumesDeleted: result.VolumesDeleted ?? [],
       spaceReclaimed: result.SpaceReclaimed ?? 0,

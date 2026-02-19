@@ -44,9 +44,7 @@ describe("ContainerConsole", () => {
 
   describe("connect/disconnect lifecycle", () => {
     it("should connect and set status to connected", async () => {
-      const { docker, stream } = createMockDocker();
-      mockStream = stream;
-
+      const { docker } = createMockDocker();
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
 
@@ -54,9 +52,7 @@ describe("ContainerConsole", () => {
     });
 
     it("should set status to disconnected after disconnect()", async () => {
-      const { docker, stream } = createMockDocker();
-      mockStream = stream;
-
+      const { docker } = createMockDocker();
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
       consoleInstance.disconnect();
@@ -65,9 +61,7 @@ describe("ContainerConsole", () => {
     });
 
     it("should emit connected event on connect", async () => {
-      const { docker, stream } = createMockDocker();
-      mockStream = stream;
-
+      const { docker } = createMockDocker();
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       const connectSpy = vi.fn();
       consoleInstance.on("connected", connectSpy);
@@ -77,9 +71,7 @@ describe("ContainerConsole", () => {
     });
 
     it("should emit disconnected event on disconnect", async () => {
-      const { docker, stream } = createMockDocker();
-      mockStream = stream;
-
+      const { docker } = createMockDocker();
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
 
@@ -97,9 +89,7 @@ describe("ContainerConsole", () => {
     });
 
     it("should track uptime when connected", async () => {
-      const { docker, stream } = createMockDocker();
-      mockStream = stream;
-
+      const { docker } = createMockDocker();
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
 
@@ -112,7 +102,6 @@ describe("ContainerConsole", () => {
   describe("send", () => {
     it("should write command with newline to stream", async () => {
       const { docker, stream } = createMockDocker();
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
@@ -144,7 +133,6 @@ describe("ContainerConsole", () => {
   describe("output buffer", () => {
     it("should buffer output lines", async () => {
       const { docker, stream } = createMockDocker({ tty: true });
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
@@ -163,7 +151,6 @@ describe("ContainerConsole", () => {
 
     it("should clear buffer", async () => {
       const { docker, stream } = createMockDocker({ tty: true });
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       await consoleInstance.connect();
@@ -177,7 +164,6 @@ describe("ContainerConsole", () => {
 
     it("should respect outputBufferSize (ring buffer)", async () => {
       const { docker, stream } = createMockDocker({ tty: true });
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container", {
         outputBufferSize: 3,
@@ -199,7 +185,6 @@ describe("ContainerConsole", () => {
   describe("output events", () => {
     it("should emit output events for each line", async () => {
       const { docker, stream } = createMockDocker({ tty: true });
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       const outputSpy = vi.fn();
@@ -219,7 +204,6 @@ describe("ContainerConsole", () => {
 
     it("should include timestamp in output lines", async () => {
       const { docker, stream } = createMockDocker({ tty: true });
-      mockStream = stream;
 
       consoleInstance = new ContainerConsole(docker as never, "test-container");
       const outputSpy = vi.fn();

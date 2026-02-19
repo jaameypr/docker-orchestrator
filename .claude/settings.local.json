@@ -8,7 +8,9 @@
       "Bash(git push)",
       "Bash(npm run lint)",
       "Bash(npm run format)",
-      "Bash(npm run format:check:*)"
+      "Bash(npm run format:check:*)",
+      "Bash(npm run format:*)",
+      "Bash(git rebase:*)"
     ]
   }
 }

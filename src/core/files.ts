@@ -56,7 +56,8 @@ function packDirectory(pack: tar.Pack, rootPath: string, relativePath: string): 
   const entries = fs.readdirSync(fullPath, { withFileTypes: true });
 
   for (const entry of entries) {
-    const entryRelative = path.join(relativePath, entry.name);
+    // Use posix separators for tar entry names (cross-platform)
+    const entryRelative = (relativePath ? relativePath + "/" : "") + entry.name;
     const entryFull = path.join(rootPath, entryRelative);
 
     if (entry.isSymbolicLink()) {

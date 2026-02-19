@@ -182,6 +182,14 @@ describeDocker("Integration: Volume Management", () => {
     const result = await pruneVolumes(docker);
     expect(result.spaceReclaimed).toBeGreaterThanOrEqual(0);
 
+    // Poll until the volume is actually gone (Docker may have a brief propagation delay
+    // between reporting VolumesDeleted and the volume becoming inaccessible via inspect).
+    const deadline = Date.now() + 5000;
+    while (Date.now() < deadline) {
+      if (!(await volumeExists(docker, volName))) break;
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
     // Verify volume was actually pruned
     expect(await volumeExists(docker, volName)).toBe(false);
   });
