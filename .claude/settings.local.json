@@ -10,7 +10,8 @@
       "Bash(npm run format)",
       "Bash(npm run format:check:*)",
       "Bash(npm run format:*)",
-      "Bash(git rebase:*)"
+      "Bash(git rebase:*)",
+      "Bash(npx vitest:*)"
     ]
   }
 }

@@ -317,6 +317,26 @@ describe("disconnectContainer", () => {
       Force: true,
     });
   });
+
+  it("should throw NetworkNotFoundError for 404 on disconnect", async () => {
+    docker.getNetwork.mockReturnValue({
+      disconnect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+
+    await expect(disconnectContainer(docker, "nonexistent-net", "c1")).rejects.toThrow(
+      NetworkNotFoundError,
+    );
+  });
+
+  it("should rethrow generic errors from disconnect", async () => {
+    docker.getNetwork.mockReturnValue({
+      disconnect: vi.fn().mockRejectedValue(new Error("network error")),
+    });
+
+    await expect(disconnectContainer(docker, "net-123", "c1")).rejects.toThrow();
+  });
 });
 
 describe("listNetworks", () => {
@@ -369,5 +389,12 @@ describe("pruneNetworks", () => {
     const deleted = await pruneNetworks(docker);
 
     expect(deleted).toEqual(["unused-net-1", "unused-net-2"]);
+  });
+
+  it("should default to empty array when NetworksDeleted is null", async () => {
+    docker.pruneNetworks.mockResolvedValue({ NetworksDeleted: null });
+
+    const deleted = await pruneNetworks(docker);
+    expect(deleted).toEqual([]);
   });
 });

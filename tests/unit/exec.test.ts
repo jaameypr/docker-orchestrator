@@ -286,6 +286,41 @@ describe("executeCommand", () => {
 
     stream.destroy();
   });
+
+  it("should handle single-quoted arguments in string command", async () => {
+    const stream = createMockStream();
+    const execFn = vi.fn().mockResolvedValue({
+      start: vi.fn().mockResolvedValue(stream),
+      inspect: vi.fn().mockResolvedValue({ Running: false, ExitCode: 0, Pid: 1 }),
+    });
+    docker.getContainer.mockReturnValue({ exec: execFn });
+
+    setTimeout(() => stream.end(), 10);
+
+    await executeCommand(docker, "container-1", "echo 'hello world'");
+
+    expect(execFn).toHaveBeenCalledWith(
+      expect.objectContaining({ Cmd: ["echo", "hello world"] }),
+    );
+  });
+
+  it("should handle backslash-escaped characters in string command", async () => {
+    const stream = createMockStream();
+    const execFn = vi.fn().mockResolvedValue({
+      start: vi.fn().mockResolvedValue(stream),
+      inspect: vi.fn().mockResolvedValue({ Running: false, ExitCode: 0, Pid: 1 }),
+    });
+    docker.getContainer.mockReturnValue({ exec: execFn });
+
+    setTimeout(() => stream.end(), 10);
+
+    // backslash-escaped space keeps tokens together
+    await executeCommand(docker, "container-1", "echo hello\\ world");
+
+    expect(execFn).toHaveBeenCalledWith(
+      expect.objectContaining({ Cmd: ["echo", "hello world"] }),
+    );
+  });
 });
 
 describe("executeInteractive", () => {

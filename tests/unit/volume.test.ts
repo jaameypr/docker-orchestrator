@@ -269,4 +269,34 @@ describe("volumeExists", () => {
     const exists = await volumeExists(docker, "nonexistent");
     expect(exists).toBe(false);
   });
+
+  it("should rethrow non-404 errors", async () => {
+    docker.getVolume.mockReturnValue({
+      inspect: vi.fn().mockRejectedValue(new Error("connection refused")),
+    });
+
+    await expect(volumeExists(docker, "my-volume")).rejects.toThrow();
+  });
+});
+
+describe("pruneVolumes - null fields", () => {
+  let docker: ReturnType<typeof createMockDocker>;
+
+  beforeEach(() => {
+    docker = createMockDocker();
+  });
+
+  it("should default volumesDeleted to empty array when null", async () => {
+    docker.pruneVolumes.mockResolvedValue({ VolumesDeleted: null, SpaceReclaimed: 0 });
+
+    const result = await pruneVolumes(docker);
+    expect(result.volumesDeleted).toEqual([]);
+  });
+
+  it("should default spaceReclaimed to 0 when null", async () => {
+    docker.pruneVolumes.mockResolvedValue({ VolumesDeleted: [], SpaceReclaimed: null });
+
+    const result = await pruneVolumes(docker);
+    expect(result.spaceReclaimed).toBe(0);
+  });
 });

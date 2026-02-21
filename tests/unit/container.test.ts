@@ -212,6 +212,14 @@ describe("inspectContainer", () => {
 
     await expect(inspectContainer(docker, "nonexistent")).rejects.toThrow(ContainerNotFoundError);
   });
+
+  it("should rethrow non-404 errors from inspect", async () => {
+    docker.getContainer.mockReturnValue({
+      inspect: vi.fn().mockRejectedValue(new Error("connection refused")),
+    });
+
+    await expect(inspectContainer(docker, "abc123")).rejects.toThrow();
+  });
 });
 
 describe("listContainers", () => {
@@ -259,5 +267,22 @@ describe("listContainers", () => {
 
     await listContainers(docker);
     expect(docker.listContainers).toHaveBeenCalledWith({ all: false });
+  });
+
+  it("should handle containers with no ports", async () => {
+    docker.listContainers.mockResolvedValue([
+      {
+        Id: "abc123",
+        Names: ["/no-ports"],
+        Image: "alpine",
+        State: "running",
+        Status: "Up",
+        Ports: [],
+        Created: 1700000000,
+      },
+    ]);
+
+    const containers = await listContainers(docker);
+    expect(containers[0].ports).toEqual([]);
   });
 });
