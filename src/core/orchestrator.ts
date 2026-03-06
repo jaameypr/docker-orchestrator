@@ -202,7 +202,6 @@ export class Orchestrator {
       presetName = userConfig.preset;
       onProgress?.("preset", `Loading preset "${presetName}"`);
       const preset = this._presets.get(presetName);
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const { preset: _presetKey, ...userOverrides } = userConfig;
       resolvedConfig = mergePresetConfig(
         preset.config as Partial<ContainerConfig>,
