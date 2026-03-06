@@ -34,16 +34,43 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate tag matches package.json version
+        run: |
+          TAG_VERSION="${GITHUB_REF#refs/tags/v}"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::Tag version (${TAG_VERSION}) does not match package.json version (${PKG_VERSION})"
+            exit 1
+          fi
+
+      - name: Check if version already exists on npm
+        id: version-check
+        run: |
+          PKG_NAME="$(node -p "require('./package.json').name")"
+          PKG_VERSION="$(node -p "require('./package.json').version")"
+          PUBLISHED=$(npm view "${PKG_NAME}@${PKG_VERSION}" version 2>/dev/null || echo "")
+          if [ "$PUBLISHED" = "$PKG_VERSION" ]; then
+            echo "::warning::Version ${PKG_VERSION} is already published to npm — skipping publish."
+            echo "already_published=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "already_published=false" >> "$GITHUB_OUTPUT"
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
       - name: Build
+        if: steps.version-check.outputs.already_published == 'false'
         run: npm run build
 
       - name: Verify dist
+        if: steps.version-check.outputs.already_published == 'false'
         run: |
           test -f dist/esm/index.js
           test -f dist/cjs/index.cjs
           test -f dist/esm/index.d.ts
 
       - name: Publish to npm
+        if: steps.version-check.outputs.already_published == 'false'
         run: npm publish --provenance --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
