@@ -152,5 +152,5 @@ jobs:
       - name: Verify dist output
         run: |
           test -f dist/esm/index.js
-          test -f dist/cjs/index.js
+          test -f dist/cjs/index.cjs
           test -f dist/esm/index.d.ts
