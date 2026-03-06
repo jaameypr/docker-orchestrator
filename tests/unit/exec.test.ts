@@ -299,9 +299,7 @@ describe("executeCommand", () => {
 
     await executeCommand(docker, "container-1", "echo 'hello world'");
 
-    expect(execFn).toHaveBeenCalledWith(
-      expect.objectContaining({ Cmd: ["echo", "hello world"] }),
-    );
+    expect(execFn).toHaveBeenCalledWith(expect.objectContaining({ Cmd: ["echo", "hello world"] }));
   });
 
   it("should handle backslash-escaped characters in string command", async () => {
@@ -317,9 +315,7 @@ describe("executeCommand", () => {
     // backslash-escaped space keeps tokens together
     await executeCommand(docker, "container-1", "echo hello\\ world");
 
-    expect(execFn).toHaveBeenCalledWith(
-      expect.objectContaining({ Cmd: ["echo", "hello world"] }),
-    );
+    expect(execFn).toHaveBeenCalledWith(expect.objectContaining({ Cmd: ["echo", "hello world"] }));
   });
 });
 

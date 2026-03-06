@@ -292,9 +292,9 @@ describe("deployStack", () => {
       networks: { backend: { driver: "bridge", internal: true } },
     });
 
-    const networkNames = vi.mocked(createNetwork).mock.calls.map(
-      (c) => (c[1] as { name?: string })?.name,
-    );
+    const networkNames = vi
+      .mocked(createNetwork)
+      .mock.calls.map((c) => (c[1] as { name?: string })?.name);
     expect(networkNames.some((n) => n?.includes("backend"))).toBe(true);
   });
 
