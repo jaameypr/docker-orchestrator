@@ -47,12 +47,12 @@ describe("createVolume", () => {
   });
 
   it("should create a volume with default local driver", async () => {
-    docker.getVolume.mockReturnValue({
-      inspect: vi
-        .fn()
-        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
-    });
-    docker.createVolume.mockResolvedValue(fakeVolumeData);
+    const inspectFn = vi
+      .fn()
+      .mockRejectedValueOnce(Object.assign(new Error("not found"), { statusCode: 404 }))
+      .mockResolvedValueOnce(fakeVolumeData);
+    docker.getVolume.mockReturnValue({ inspect: inspectFn });
+    docker.createVolume.mockResolvedValue({});
 
     const info = await createVolume(docker, { name: "my-volume" });
 
@@ -67,12 +67,12 @@ describe("createVolume", () => {
   });
 
   it("should pass driver opts and labels", async () => {
-    docker.getVolume.mockReturnValue({
-      inspect: vi
-        .fn()
-        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
-    });
-    docker.createVolume.mockResolvedValue(fakeVolumeData);
+    const inspectFn = vi
+      .fn()
+      .mockRejectedValueOnce(Object.assign(new Error("not found"), { statusCode: 404 }))
+      .mockResolvedValueOnce(fakeVolumeData);
+    docker.getVolume.mockReturnValue({ inspect: inspectFn });
+    docker.createVolume.mockResolvedValue({});
 
     await createVolume(docker, {
       name: "my-vol",
@@ -304,12 +304,12 @@ describe("pruneVolumes - null fields", () => {
 describe("createVolume - edge cases", () => {
   it("should ignore non-404 errors during duplicate check and try to create", async () => {
     const docker = createMockDocker();
-    docker.getVolume.mockReturnValue({
-      inspect: vi
-        .fn()
-        .mockRejectedValue(Object.assign(new Error("server error"), { statusCode: 500 })),
-    });
-    docker.createVolume.mockResolvedValue(fakeVolumeData);
+    const inspectFn = vi
+      .fn()
+      .mockRejectedValueOnce(Object.assign(new Error("server error"), { statusCode: 500 }))
+      .mockResolvedValueOnce(fakeVolumeData);
+    docker.getVolume.mockReturnValue({ inspect: inspectFn });
+    docker.createVolume.mockResolvedValue({});
 
     const info = await createVolume(docker, { name: "my-volume" });
     expect(info.name).toBe("my-volume");
