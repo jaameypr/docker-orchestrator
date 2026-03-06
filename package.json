@@ -48,13 +48,13 @@
     "devops"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/pruefertit/docker-orchestrator#readme",
+  "homepage": "https://github.com/jaameypr/docker-orchestrator#readme",
   "repository": {
     "type": "git",
-    "url": "https://github.com/pruefertit/docker-orchestrator.git"
+    "url": "https://github.com/jaameypr/docker-orchestrator.git"
   },
   "bugs": {
-    "url": "https://github.com/pruefertit/docker-orchestrator/issues"
+    "url": "https://github.com/jaameypr/docker-orchestrator/issues"
   },
   "engines": {
     "node": ">=18"
