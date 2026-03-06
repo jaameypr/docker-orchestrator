@@ -3,12 +3,11 @@
 A TypeScript-first Docker orchestration library for programmatic container lifecycle management, monitoring, networking, and resilient operations.
 
 [![NPM Version](https://img.shields.io/npm/v/@pruefertit/docker-orchestrator)](https://www.npmjs.com/package/@pruefertit/docker-orchestrator)
-[![CI Status](https://img.shields.io/github/actions/workflow/status/pruefertit/docker-orchestrator/ci.yml?branch=main&label=CI)](https://github.com/pruefertit/docker-orchestrator/actions)
+[![CI Status](https://img.shields.io/github/actions/workflow/status/jaameypr/docker-orchestrator/ci.yml?branch=master&label=CI)](https://github.com/jaameypr/docker-orchestrator/actions)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Node.js](https://img.shields.io/badge/Node.js-%E2%89%A518-green)](https://nodejs.org)
 [![Docker](https://img.shields.io/badge/Docker-%E2%89%A520.10-blue)](https://docs.docker.com/engine/)
 [![npm downloads](https://img.shields.io/npm/dm/@pruefertit/docker-orchestrator)](https://www.npmjs.com/package/@pruefertit/docker-orchestrator)
-[![Bundle Size](https://img.shields.io/bundlephobia/minzip/@pruefertit/docker-orchestrator)](https://bundlephobia.com/package/@pruefertit/docker-orchestrator)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue?logo=typescript)](https://www.typescriptlang.org/)
 
 ---
@@ -2174,8 +2173,8 @@ MIT License — siehe [LICENSE](LICENSE) für Details.
 
 ## Links
 
-- [Repository](https://github.com/pruefertit/docker-orchestrator)
-- [Issues & Bug-Reports](https://github.com/pruefertit/docker-orchestrator/issues)
+- [Repository](https://github.com/jaameypr/docker-orchestrator)
+- [Issues & Bug-Reports](https://github.com/jaameypr/docker-orchestrator/issues)
 - [NPM](https://www.npmjs.com/package/@pruefertit/docker-orchestrator)
 
 Maintained by the **pruefertit** Team.
