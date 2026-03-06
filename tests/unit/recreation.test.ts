@@ -391,4 +391,253 @@ describe("recreateContainer", () => {
     // Stop should not have been called
     expect(oldContainer.stop).not.toHaveBeenCalled();
   });
+
+  it("should merge entrypoint updates", () => {
+    const merged = mergeContainerConfig(
+      {
+        image: "node:18",
+        name: "app",
+        env: [],
+        cmd: null,
+        entrypoint: null,
+        hostname: "",
+        exposedPorts: {},
+        portBindings: {},
+        binds: [],
+        mounts: [],
+        networkMode: "default",
+        networks: {},
+        memoryLimit: 0,
+        cpuShares: 0,
+        cpuQuota: 0,
+        restartPolicy: { Name: "no", MaximumRetryCount: 0 },
+        labels: {},
+        workingDir: "",
+        user: "",
+      },
+      { entrypoint: ["/bin/sh", "-c"] },
+    );
+    expect(merged.entrypoint).toEqual(["/bin/sh", "-c"]);
+  });
+
+  it("should merge cpuShares updates", () => {
+    const merged = mergeContainerConfig(
+      {
+        image: "node:18",
+        name: "app",
+        env: [],
+        cmd: null,
+        entrypoint: null,
+        hostname: "",
+        exposedPorts: {},
+        portBindings: {},
+        binds: [],
+        mounts: [],
+        networkMode: "default",
+        networks: {},
+        memoryLimit: 0,
+        cpuShares: 0,
+        cpuQuota: 0,
+        restartPolicy: { Name: "no", MaximumRetryCount: 0 },
+        labels: {},
+        workingDir: "",
+        user: "",
+      },
+      { cpuShares: 512 },
+    );
+    expect(merged.cpuShares).toBe(512);
+  });
+
+  it("should handle env entries without = sign", () => {
+    const merged = mergeContainerConfig(
+      {
+        image: "node:18",
+        name: "app",
+        env: ["NO_EQUALS_SIGN"],
+        cmd: null,
+        entrypoint: null,
+        hostname: "",
+        exposedPorts: {},
+        portBindings: {},
+        binds: [],
+        mounts: [],
+        networkMode: "default",
+        networks: {},
+        memoryLimit: 0,
+        cpuShares: 0,
+        cpuQuota: 0,
+        restartPolicy: { Name: "no", MaximumRetryCount: 0 },
+        labels: {},
+        workingDir: "",
+        user: "",
+      },
+      { env: { NEW: "val" } },
+    );
+    // Env entry without = is skipped during parsing
+    expect(merged.env).toContain("NEW=val");
+    expect(merged.env).not.toContain("NO_EQUALS_SIGN");
+  });
+
+  it("should add readonly volumes with :ro suffix", () => {
+    const merged = mergeContainerConfig(
+      {
+        image: "node:18",
+        name: "app",
+        env: [],
+        cmd: null,
+        entrypoint: null,
+        hostname: "",
+        exposedPorts: {},
+        portBindings: {},
+        binds: [],
+        mounts: [],
+        networkMode: "default",
+        networks: {},
+        memoryLimit: 0,
+        cpuShares: 0,
+        cpuQuota: 0,
+        restartPolicy: { Name: "no", MaximumRetryCount: 0 },
+        labels: {},
+        workingDir: "",
+        user: "",
+      },
+      { volumes: [{ host: "/config", container: "/app/config", readOnly: true }] },
+    );
+    expect(merged.binds).toContain("/config:/app/config:ro");
+  });
+
+  it("should wait for healthcheck and succeed when healthy", async () => {
+    const oldContainer = {
+      inspect: vi.fn().mockResolvedValue(fakeInspectData),
+      stop: vi.fn().mockResolvedValue(undefined),
+      rename: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const newContainer = {
+      rename: vi.fn().mockResolvedValue(undefined),
+      start: vi.fn().mockResolvedValue(undefined),
+      inspect: vi
+        .fn()
+        .mockResolvedValueOnce({
+          ...fakeInspectData,
+          Config: { ...fakeInspectData.Config, Healthcheck: { Test: ["CMD", "true"] } },
+        })
+        .mockResolvedValueOnce({
+          ...fakeInspectData,
+          State: { ...fakeInspectData.State, Health: { Status: "healthy" } },
+        }),
+      remove: vi.fn().mockResolvedValue(undefined),
+    };
+
+    docker.getContainer.mockImplementation((id: string) => {
+      if (id === "old-container-123") return oldContainer;
+      return newContainer;
+    });
+
+    docker.createContainer.mockResolvedValue({ id: "new-container-hc" });
+
+    const result = await recreateContainer(docker, "old-container-123");
+    expect(result.rollbackStatus).toBe("not_needed");
+  });
+
+  it("should handle container with no health check object", async () => {
+    const oldContainer = {
+      inspect: vi.fn().mockResolvedValue(fakeInspectData),
+      stop: vi.fn().mockResolvedValue(undefined),
+      rename: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const newContainer = {
+      rename: vi.fn().mockResolvedValue(undefined),
+      start: vi.fn().mockResolvedValue(undefined),
+      inspect: vi
+        .fn()
+        .mockResolvedValueOnce({
+          ...fakeInspectData,
+          Config: { ...fakeInspectData.Config, Healthcheck: { Test: ["CMD", "true"] } },
+        })
+        .mockResolvedValueOnce({
+          ...fakeInspectData,
+          State: { ...fakeInspectData.State, Health: null },
+        }),
+      remove: vi.fn().mockResolvedValue(undefined),
+    };
+
+    docker.getContainer.mockImplementation((id: string) => {
+      if (id === "old-container-123") return oldContainer;
+      return newContainer;
+    });
+
+    docker.createContainer.mockResolvedValue({ id: "new-container-nh" });
+
+    const result = await recreateContainer(docker, "old-container-123");
+    expect(result.rollbackStatus).toBe("not_needed");
+  });
+
+  it("should throw when container becomes unhealthy", async () => {
+    const oldContainer = {
+      inspect: vi.fn().mockResolvedValue(fakeInspectData),
+      stop: vi.fn().mockResolvedValue(undefined),
+      rename: vi.fn().mockResolvedValue(undefined),
+      start: vi.fn().mockResolvedValue(undefined),
+    };
+
+    const newContainer = {
+      rename: vi.fn().mockResolvedValue(undefined),
+      start: vi.fn().mockResolvedValue(undefined),
+      stop: vi.fn().mockResolvedValue(undefined),
+      remove: vi.fn().mockResolvedValue(undefined),
+      inspect: vi
+        .fn()
+        .mockResolvedValueOnce({
+          ...fakeInspectData,
+          Config: { ...fakeInspectData.Config, Healthcheck: { Test: ["CMD", "true"] } },
+        })
+        .mockResolvedValue({
+          ...fakeInspectData,
+          State: { ...fakeInspectData.State, Health: { Status: "unhealthy" } },
+        }),
+    };
+
+    docker.getContainer.mockImplementation((id: string) => {
+      if (id === "old-container-123") return oldContainer;
+      return newContainer;
+    });
+
+    docker.createContainer.mockResolvedValue({ id: "new-container-uh" });
+
+    await expect(recreateContainer(docker, "old-container-123")).rejects.toThrow(
+      RecreationFailedError,
+    );
+  });
+
+  it("should throw ContainerNotFoundError on 404 during second inspect", async () => {
+    docker.getContainer.mockReturnValue({
+      inspect: vi
+        .fn()
+        .mockResolvedValueOnce(fakeInspectData)
+        .mockRejectedValueOnce(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+
+    await expect(recreateContainer(docker, "old-container-123")).rejects.toThrow(
+      ContainerNotFoundError,
+    );
+  });
+
+  it("should extract config with null HostConfig and NetworkSettings", async () => {
+    const minimalInspect = {
+      ...fakeInspectData,
+      HostConfig: null,
+      NetworkSettings: null,
+    };
+
+    docker.getContainer.mockReturnValue({
+      inspect: vi.fn().mockResolvedValue(minimalInspect),
+    });
+
+    const config = await extractContainerConfig(docker, "old-container-123");
+    expect(config.binds).toEqual([]);
+    expect(config.networkMode).toBe("default");
+    expect(config.memoryLimit).toBe(0);
+  });
 });

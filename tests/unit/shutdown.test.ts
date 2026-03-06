@@ -104,4 +104,55 @@ describe("ShutdownManager", () => {
     await manager.shutdown();
     expect(cb).not.toHaveBeenCalled();
   });
+
+  it("should unregister be a no-op for non-existent name", async () => {
+    const manager = new ShutdownManager({ timeout: 5000 });
+    manager.unregister("does-not-exist"); // should not throw
+  });
+
+  it("should install and remove signal handlers", () => {
+    const manager = new ShutdownManager({ timeout: 5000 });
+    const onSpy = vi.spyOn(process, "on").mockImplementation(() => process);
+    const removeListenerSpy = vi.spyOn(process, "removeListener").mockImplementation(() => process);
+
+    manager.installSignalHandlers();
+    expect(onSpy).toHaveBeenCalledWith("SIGINT", expect.any(Function));
+    expect(onSpy).toHaveBeenCalledWith("SIGTERM", expect.any(Function));
+
+    manager.removeSignalHandlers();
+    expect(removeListenerSpy).toHaveBeenCalledTimes(2);
+
+    onSpy.mockRestore();
+    removeListenerSpy.mockRestore();
+  });
+
+  it("should handle non-Error thrown in cleanup", async () => {
+    const manager = new ShutdownManager({ timeout: 5000 });
+    const cb2 = vi.fn();
+
+    manager.register("string-thrower", () => {
+      throw "string error";
+    });
+    manager.register("succeeding", cb2);
+
+    await manager.shutdown();
+    expect(cb2).toHaveBeenCalled();
+  });
+
+  it("should log shutdown messages with logger", async () => {
+    const logger = {
+      info: vi.fn(),
+      warn: vi.fn(),
+      error: vi.fn(),
+      debug: vi.fn(),
+    };
+    const manager = new ShutdownManager({ timeout: 5000, logger });
+    manager.register("test-cb", () => {});
+
+    await manager.shutdown();
+    expect(logger.info).toHaveBeenCalledWith("Graceful shutdown started");
+    expect(logger.debug).toHaveBeenCalledWith("Running cleanup: test-cb");
+    expect(logger.debug).toHaveBeenCalledWith("Cleanup completed: test-cb");
+    expect(logger.info).toHaveBeenCalledWith("Graceful shutdown completed");
+  });
 });

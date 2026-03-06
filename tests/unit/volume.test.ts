@@ -300,3 +300,105 @@ describe("pruneVolumes - null fields", () => {
     expect(result.spaceReclaimed).toBe(0);
   });
 });
+
+describe("createVolume - edge cases", () => {
+  it("should ignore non-404 errors during duplicate check and try to create", async () => {
+    const docker = createMockDocker();
+    docker.getVolume.mockReturnValue({
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("server error"), { statusCode: 500 })),
+    });
+    docker.createVolume.mockResolvedValue(fakeVolumeData);
+
+    const info = await createVolume(docker, { name: "my-volume" });
+    expect(info.name).toBe("my-volume");
+  });
+
+  it("should throw VolumeAlreadyExistsError for message-based detection", async () => {
+    const docker = createMockDocker();
+    docker.getVolume.mockReturnValue({
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+    docker.createVolume.mockRejectedValue(new Error("volume already exists"));
+
+    await expect(createVolume(docker, { name: "my-volume" })).rejects.toThrow(
+      VolumeAlreadyExistsError,
+    );
+  });
+});
+
+describe("removeVolume - edge cases", () => {
+  it("should throw VolumeInUseError for message-based detection", async () => {
+    const docker = createMockDocker();
+    docker.getVolume.mockReturnValue({
+      remove: vi.fn().mockRejectedValue(new Error("volume is in use")),
+    });
+
+    await expect(removeVolume(docker, "busy-vol")).rejects.toThrow(VolumeInUseError);
+  });
+
+  it("should rethrow generic errors", async () => {
+    const docker = createMockDocker();
+    docker.getVolume.mockReturnValue({
+      remove: vi.fn().mockRejectedValue(new Error("connection refused")),
+    });
+
+    await expect(removeVolume(docker, "vol")).rejects.toThrow();
+  });
+});
+
+describe("listVolumes - filters", () => {
+  it("should pass name and driver filters", async () => {
+    const docker = createMockDocker();
+    docker.listVolumes.mockResolvedValue({ Volumes: [] });
+
+    await listVolumes(docker, { name: "test", driver: "local" });
+
+    const call = docker.listVolumes.mock.calls[0][0];
+    const filters = JSON.parse(call.filters);
+    expect(filters.name).toEqual(["test"]);
+    expect(filters.driver).toEqual(["local"]);
+  });
+
+  it("should pass label filter", async () => {
+    const docker = createMockDocker();
+    docker.listVolumes.mockResolvedValue({ Volumes: [] });
+
+    await listVolumes(docker, { label: ["env=test", "app=web"] });
+
+    const call = docker.listVolumes.mock.calls[0][0];
+    const filters = JSON.parse(call.filters);
+    expect(filters.label).toEqual(["env=test", "app=web"]);
+  });
+
+  it("should not pass filters when none specified", async () => {
+    const docker = createMockDocker();
+    docker.listVolumes.mockResolvedValue({ Volumes: [] });
+
+    await listVolumes(docker);
+
+    expect(docker.listVolumes).toHaveBeenCalledWith({ filters: undefined });
+  });
+
+  it("should handle null Volumes in response", async () => {
+    const docker = createMockDocker();
+    docker.listVolumes.mockResolvedValue({ Volumes: null });
+
+    const result = await listVolumes(docker);
+    expect(result).toEqual([]);
+  });
+});
+
+describe("inspectVolume - edge cases", () => {
+  it("should rethrow generic errors", async () => {
+    const docker = createMockDocker();
+    docker.getVolume.mockReturnValue({
+      inspect: vi.fn().mockRejectedValue(new Error("connection refused")),
+    });
+
+    await expect(inspectVolume(docker, "vol")).rejects.toThrow();
+  });
+});

@@ -398,3 +398,184 @@ describe("pruneNetworks", () => {
     expect(deleted).toEqual([]);
   });
 });
+
+describe("createNetwork - error paths", () => {
+  it("should throw NetworkAlreadyExistsError for 409 status on create", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([]);
+    docker.createNetwork.mockRejectedValue(
+      Object.assign(new Error("conflict"), { statusCode: 409 }),
+    );
+
+    await expect(createNetwork(docker, { name: "dup-net" })).rejects.toThrow(
+      NetworkAlreadyExistsError,
+    );
+  });
+
+  it("should throw NetworkAlreadyExistsError for message-based detection", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([]);
+    docker.createNetwork.mockRejectedValue(new Error("network already exists"));
+
+    await expect(createNetwork(docker, { name: "dup-net" })).rejects.toThrow(
+      NetworkAlreadyExistsError,
+    );
+  });
+
+  it("should rethrow generic create errors", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([]);
+    docker.createNetwork.mockRejectedValue(new Error("daemon error"));
+
+    await expect(createNetwork(docker, { name: "fail-net" })).rejects.toThrow();
+  });
+});
+
+describe("removeNetwork - error on remove", () => {
+  it("should throw NetworkNotFoundError for 404 on remove call", async () => {
+    const docker = createMockDocker();
+    docker.getNetwork.mockReturnValue({
+      inspect: vi.fn().mockResolvedValue({ Containers: {} }),
+      remove: vi.fn().mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+
+    await expect(removeNetwork(docker, "gone-net")).rejects.toThrow(NetworkNotFoundError);
+  });
+
+  it("should rethrow generic errors on remove", async () => {
+    const docker = createMockDocker();
+    docker.getNetwork.mockReturnValue({
+      inspect: vi.fn().mockResolvedValue({ Containers: {} }),
+      remove: vi.fn().mockRejectedValue(new Error("daemon crashed")),
+    });
+
+    await expect(removeNetwork(docker, "net-1")).rejects.toThrow();
+  });
+});
+
+describe("listNetworks - filters", () => {
+  it("should pass driver, name, label, and scope filters", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([]);
+
+    await listNetworks(docker, {
+      driver: "overlay",
+      name: "my-net",
+      label: ["env=prod"],
+      scope: "swarm",
+    });
+
+    const call = docker.listNetworks.mock.calls[0][0];
+    const filters = JSON.parse(call.filters);
+    expect(filters.driver).toEqual(["overlay"]);
+    expect(filters.name).toEqual(["my-net"]);
+    expect(filters.label).toEqual(["env=prod"]);
+    expect(filters.scope).toEqual(["swarm"]);
+  });
+
+  it("should not pass filters when none specified", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([]);
+
+    await listNetworks(docker);
+
+    expect(docker.listNetworks).toHaveBeenCalledWith({ filters: undefined });
+  });
+
+  it("should handle networks with null IPAM", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([
+      {
+        Id: "net-1",
+        Name: "no-ipam",
+        Driver: "bridge",
+        Scope: "local",
+        IPAM: null,
+        Labels: {},
+      },
+    ]);
+
+    const networks = await listNetworks(docker);
+    expect(networks[0].ipam.driver).toBe("default");
+    expect(networks[0].ipam.config).toEqual([]);
+  });
+
+  it("should handle networks with null Internal/EnableIPv6/Labels/Created", async () => {
+    const docker = createMockDocker();
+    docker.listNetworks.mockResolvedValue([
+      {
+        Id: "net-1",
+        Name: "minimal",
+        Driver: "bridge",
+        Scope: "local",
+        Internal: null,
+        EnableIPv6: null,
+        IPAM: { Driver: "default", Config: [] },
+        Labels: null,
+        Created: null,
+      },
+    ]);
+
+    const networks = await listNetworks(docker);
+    expect(networks[0].internal).toBe(false);
+    expect(networks[0].enableIPv6).toBe(false);
+    expect(networks[0].labels).toEqual({});
+    expect(networks[0].created).toBe("");
+  });
+});
+
+describe("connectContainer - error paths", () => {
+  it("should throw NetworkNotFoundError for 404 on inspect during IP validation", async () => {
+    const docker = createMockDocker();
+    docker.getNetwork.mockReturnValue({
+      inspect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+
+    await expect(
+      connectContainer(docker, "net-1", "c1", { ipv4Address: "10.0.0.5" }),
+    ).rejects.toThrow(NetworkNotFoundError);
+  });
+
+  it("should throw NetworkNotFoundError for 404 on connect call", async () => {
+    const docker = createMockDocker();
+    docker.getNetwork.mockReturnValue({
+      connect: vi
+        .fn()
+        .mockRejectedValue(Object.assign(new Error("not found"), { statusCode: 404 })),
+    });
+
+    await connectContainer(docker, "net-1", "c1").catch(() => {});
+
+    await expect(connectContainer(docker, "net-1", "c1")).rejects.toThrow(NetworkNotFoundError);
+  });
+
+  it("should connect without endpoint config when no options", async () => {
+    const docker = createMockDocker();
+    const mockConnect = vi.fn().mockResolvedValue(undefined);
+    docker.getNetwork.mockReturnValue({ connect: mockConnect });
+
+    await connectContainer(docker, "net-1", "c1");
+
+    expect(mockConnect).toHaveBeenCalledWith(
+      expect.objectContaining({
+        Container: "c1",
+        EndpointConfig: undefined,
+      }),
+    );
+  });
+
+  it("should proceed with connect when inspect fails for non-404 during IP validation", async () => {
+    const docker = createMockDocker();
+    const mockConnect = vi.fn().mockResolvedValue(undefined);
+    docker.getNetwork.mockReturnValue({
+      inspect: vi.fn().mockRejectedValue(new Error("server error")),
+      connect: mockConnect,
+    });
+
+    await connectContainer(docker, "net-1", "c1", { ipv4Address: "10.0.0.5" });
+
+    expect(mockConnect).toHaveBeenCalled();
+  });
+});

@@ -213,6 +213,126 @@ describe("subscribeEvents", () => {
     sub.unsubscribe();
   });
 
+  it("should handle events with missing Actor fields", async () => {
+    const sub = await subscribeEvents(docker);
+    const events: DockerEvent[] = [];
+
+    sub.on("event", (event) => events.push(event));
+
+    eventStream.write(JSON.stringify({ Type: "container", Action: "start", time: 123 }) + "\n");
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(events).toHaveLength(1);
+    expect(events[0].actor.id).toBe("");
+    expect(events[0].actor.attributes).toEqual({});
+
+    sub.unsubscribe();
+  });
+
+  it("should handle events with no time field", async () => {
+    const sub = await subscribeEvents(docker);
+    const events: DockerEvent[] = [];
+
+    sub.on("event", (event) => events.push(event));
+
+    eventStream.write(JSON.stringify({ Type: "container", Action: "start" }) + "\n");
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(events).toHaveLength(1);
+    expect(events[0].timestamp).toBeInstanceOf(Date);
+
+    sub.unsubscribe();
+  });
+
+  it("should handle events with missing type or action", async () => {
+    const sub = await subscribeEvents(docker);
+    const events: DockerEvent[] = [];
+
+    sub.on("event", (event) => events.push(event));
+
+    // Missing type - should be ignored
+    eventStream.write(JSON.stringify({ Action: "start", time: 123 }) + "\n");
+    // Missing action - should be ignored
+    eventStream.write(JSON.stringify({ Type: "container", time: 123 }) + "\n");
+    // Valid event
+    eventStream.write(makeContainerEvent("start") + "\n");
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(events).toHaveLength(1);
+
+    sub.unsubscribe();
+  });
+
+  it("should not throw on connection failure and return subscription", async () => {
+    const docker2 = createMockDocker();
+    docker2.getEvents.mockRejectedValue(new Error("connection refused"));
+
+    const sub = await subscribeEvents(docker2);
+    expect(sub).toBeDefined();
+    expect(sub.unsubscribe).toBeInstanceOf(Function);
+
+    sub.unsubscribe();
+  });
+
+  it("should attempt reconnect on stream end", async () => {
+    const sub = await subscribeEvents(docker);
+
+    // End the stream to trigger reconnect
+    eventStream.end();
+
+    // Wait for reconnect scheduling
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    sub.unsubscribe();
+  });
+
+  it("should emit error and reconnect on stream error", async () => {
+    const sub = await subscribeEvents(docker);
+    const errors: Error[] = [];
+
+    sub.on("error", (err) => errors.push(err));
+
+    eventStream.emit("error", new Error("stream broken"));
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(errors).toHaveLength(1);
+
+    sub.unsubscribe();
+  });
+
+  it("should pass since and until to Docker API", async () => {
+    const since = new Date("2024-01-01T00:00:00Z");
+    const until = 1705312200;
+
+    await subscribeEvents(docker, { since, until });
+
+    const callArgs = docker.getEvents.mock.calls[0][0];
+    expect(callArgs.since).toBe(Math.floor(since.getTime() / 1000));
+    expect(callArgs.until).toBe(until);
+
+    const sub = await subscribeEvents(docker, { since, until });
+    sub.unsubscribe();
+  });
+
+  it("should handle empty lines in the stream", async () => {
+    const sub = await subscribeEvents(docker);
+    const events: DockerEvent[] = [];
+
+    sub.on("event", (event) => events.push(event));
+
+    eventStream.write("\n\n" + makeContainerEvent("start") + "\n\n");
+
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    expect(events).toHaveLength(1);
+
+    sub.unsubscribe();
+  });
+
   it("should map raw event correctly with all actor fields", async () => {
     const sub = await subscribeEvents(docker);
     const events: DockerEvent[] = [];

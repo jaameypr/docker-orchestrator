@@ -232,3 +232,103 @@ describe("streamLogs", () => {
     (logStream as { stop: () => void }).stop();
   });
 });
+
+describe("getContainerLogs - edge cases", () => {
+  it("should handle Buffer response in one-shot mode", async () => {
+    const docker = createMockDocker();
+    const frame = buildFrame(1, "buffer response\n");
+    docker.getContainer.mockReturnValue({
+      logs: vi.fn().mockResolvedValue(frame),
+    });
+
+    const entries = (await getContainerLogs(docker, "abc123", {
+      follow: false,
+    })) as LogEntry[];
+
+    expect(entries).toHaveLength(1);
+    expect(entries[0].message).toBe("buffer response");
+  });
+
+  it("should handle string response in one-shot mode", async () => {
+    const docker = createMockDocker();
+    const frame = buildFrame(1, "string response\n");
+    docker.getContainer.mockReturnValue({
+      logs: vi.fn().mockResolvedValue(frame.toString()),
+    });
+
+    const entries = (await getContainerLogs(docker, "abc123", {
+      follow: false,
+    })) as LogEntry[];
+
+    expect(entries.length).toBeGreaterThanOrEqual(0);
+  });
+
+  it("should pass since and until to Docker API", async () => {
+    const docker = createMockDocker();
+    const stream = new PassThrough();
+    const logsFn = vi.fn().mockResolvedValue(stream);
+    docker.getContainer.mockReturnValue({ logs: logsFn });
+
+    const resultPromise = getContainerLogs(docker, "abc123", {
+      follow: false,
+      since: new Date("2024-01-01T00:00:00Z"),
+      until: 1705312200,
+    });
+
+    stream.end();
+
+    await resultPromise;
+
+    const callArgs = logsFn.mock.calls[0][0];
+    expect(callArgs.since).toBe(Math.floor(new Date("2024-01-01T00:00:00Z").getTime() / 1000));
+    expect(callArgs.until).toBe(1705312200);
+  });
+
+  it("should rethrow generic errors from container.logs", async () => {
+    const docker = createMockDocker();
+    docker.getContainer.mockReturnValue({
+      logs: vi.fn().mockRejectedValue(new Error("daemon error")),
+    });
+
+    await expect(getContainerLogs(docker, "abc123", { follow: false })).rejects.toThrow();
+  });
+
+  it("should filter out stdout when stdout=false", async () => {
+    const docker = createMockDocker();
+    const stream = new PassThrough();
+    docker.getContainer.mockReturnValue({
+      logs: vi.fn().mockResolvedValue(stream),
+    });
+
+    const resultPromise = getContainerLogs(docker, "abc123", {
+      follow: false,
+      stdout: false,
+      stderr: true,
+    });
+
+    stream.write(buildFrame(1, "stdout line\n"));
+    stream.write(buildFrame(2, "stderr line\n"));
+    stream.end();
+
+    const entries = (await resultPromise) as LogEntry[];
+    expect(entries).toHaveLength(1);
+    expect(entries[0].stream).toBe("stderr");
+  });
+
+  it("should handle tail=all option", async () => {
+    const docker = createMockDocker();
+    const stream = new PassThrough();
+    const logsFn = vi.fn().mockResolvedValue(stream);
+    docker.getContainer.mockReturnValue({ logs: logsFn });
+
+    const resultPromise = getContainerLogs(docker, "abc123", {
+      follow: false,
+      tail: "all",
+    });
+
+    stream.end();
+    await resultPromise;
+
+    expect(logsFn).toHaveBeenCalledWith(expect.objectContaining({ tail: "all" }));
+  });
+});

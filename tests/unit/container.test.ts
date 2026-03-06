@@ -285,4 +285,108 @@ describe("listContainers", () => {
     const containers = await listContainers(docker);
     expect(containers[0].ports).toEqual([]);
   });
+
+  it("should rethrow errors from listContainers", async () => {
+    docker.listContainers.mockRejectedValue(new Error("daemon error"));
+    await expect(listContainers(docker)).rejects.toThrow();
+  });
+
+  it("should handle container with missing Names[0]", async () => {
+    docker.listContainers.mockResolvedValue([
+      {
+        Id: "abc123",
+        Names: [],
+        Image: "alpine",
+        State: "running",
+        Status: "Up",
+        Ports: [],
+        Created: 1700000000,
+      },
+    ]);
+
+    const containers = await listContainers(docker);
+    expect(containers[0].name).toBe("");
+  });
+
+  it("should handle container with null Ports", async () => {
+    docker.listContainers.mockResolvedValue([
+      {
+        Id: "abc123",
+        Names: ["/test"],
+        Image: "alpine",
+        State: "running",
+        Status: "Up",
+        Ports: null,
+        Created: 1700000000,
+      },
+    ]);
+
+    const containers = await listContainers(docker);
+    expect(containers[0].ports).toEqual([]);
+  });
+});
+
+describe("startContainer - generic errors", () => {
+  it("should rethrow non-404/304 errors", async () => {
+    const docker = createMockDocker();
+    docker.getContainer.mockReturnValue({
+      start: vi.fn().mockRejectedValue(new Error("daemon crashed")),
+    });
+    await expect(startContainer(docker, "c1")).rejects.toThrow();
+  });
+});
+
+describe("stopContainer - generic errors", () => {
+  it("should rethrow non-404/304 errors", async () => {
+    const docker = createMockDocker();
+    docker.getContainer.mockReturnValue({
+      stop: vi.fn().mockRejectedValue(new Error("daemon crashed")),
+    });
+    await expect(stopContainer(docker, "c1")).rejects.toThrow();
+  });
+});
+
+describe("removeContainer - generic errors", () => {
+  it("should rethrow non-404 errors", async () => {
+    const docker = createMockDocker();
+    docker.getContainer.mockReturnValue({
+      remove: vi.fn().mockRejectedValue(new Error("daemon crashed")),
+    });
+    await expect(removeContainer(docker, "c1")).rejects.toThrow();
+  });
+});
+
+describe("inspectContainer - null fields", () => {
+  it("should handle null Env, Cmd, and Ports", async () => {
+    const docker = createMockDocker();
+    docker.getContainer.mockReturnValue({
+      inspect: vi.fn().mockResolvedValue({
+        Id: "abc123",
+        Name: "/test",
+        Config: {
+          Image: "alpine",
+          Hostname: "test",
+          Env: null,
+          Cmd: null,
+        },
+        State: {
+          Status: "running",
+          Running: true,
+          Pid: 1,
+          ExitCode: 0,
+          StartedAt: "",
+          FinishedAt: "",
+        },
+        NetworkSettings: {
+          IPAddress: "",
+          Ports: null,
+        },
+      }),
+    });
+
+    const result = await inspectContainer(docker, "abc123");
+    expect(result.config.env).toEqual([]);
+    expect(result.config.cmd).toEqual([]);
+    expect(result.networkSettings.ports).toEqual({});
+  });
 });
