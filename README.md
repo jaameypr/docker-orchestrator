@@ -2208,18 +2208,6 @@ sudo chown -R 1000:1000 /host/data
 
 ---
 
-## Further Documentation
-
-- [Full API Reference](docs/api.md) — All methods, parameters, and return types in detail
-- [Architecture Documentation](docs/architecture.md) — Internal design and module structure
-- [Security Best Practices](docs/security.md) — Hardening guide and recommendations
-- [Performance Tuning](docs/performance.md) — Optimization for high load and many containers
-- [Migration Guide](docs/migration.md) — Upgrade instructions between versions
-- [Contributing Guidelines](CONTRIBUTING.md) — How to contribute to the project
-- [Changelog](CHANGELOG.md) — Version history
-
----
-
 ## License
 
 MIT License — see [LICENSE](LICENSE) for details.
