@@ -12,41 +12,94 @@ A TypeScript-first Docker orchestration library for programmatic container lifec
 
 ---
 
-## Features
+## Table of Contents
 
-- **Container-Lifecycle-Management** — Create, Start, Stop, Remove, Recreate with automatic rollback
-- **Echtzeit-Log-Streaming** — stdout/stderr separation, follow mode, tail, time-range filtering
-- **Container-Metriken** — CPU, Memory, Network I/O, Block I/O with continuous streaming
-- **Docker-Event-System** — Subscribe to typed events with filtering and auto-reconnect
-- **Command-Execution** — Run commands in containers: simple exec, interactive TTY, script execution
-- **Attach/STDIN-Streaming** — Low-level container attach with stdin/stdout/stderr, fire-and-forget commands
-- **Persistent Console** — Interactive container console with reconnect, output buffering, sendAndWait, and command queue
-- **Preset-System** — Reusable container configurations with merge logic, graceful stop hooks, and ready-check integration
-- **Bidirektionaler Datei-Transfer** — Copy files and buffers between host and container
-- **Netzwerk-Management** — Custom bridge/overlay/macvlan networks, DNS aliases, fixed IPs
-- **Volume-Management** — Named volumes, bind mounts, tmpfs with automatic creation
-- **Flexibles Port-Mapping** — String/number/object syntax, ranges, UDP, auto-assign with availability checks
-- **Resource-Limits** — Memory (hard/soft), CPU (cores/shares), PID limits, Block I/O weights
-- **Security-Profile** — Presets (hardened/standard/permissive), capabilities, read-only FS, seccomp
-- **Health-Checks** — HTTP, TCP, and exec-based checks with configurable intervals and timeouts
-- **Batch-Operationen** — Parallel deploy/destroy/update with concurrency control and partial-failure handling
-- **Resilienz** — Retry with exponential backoff, circuit breaker, stream recovery, graceful shutdown
-- **Stack-Deployment** — Multi-container stacks with dependency ordering and service scaling
-- **Vollständig typisiert** — TypeScript-first with Zod schema validation, 200+ exported types
+- [Features](#features)
+- [Prerequisites](#prerequisites)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Usage Examples](#usage-examples)
+  - [1. Container Lifecycle](#1-container-lifecycle)
+  - [2. Configuration](#2-configuration)
+  - [3. Monitoring](#3-monitoring)
+  - [4. Exec & Files](#4-exec--files)
+  - [5. Networking](#5-networking)
+  - [6. Volumes](#6-volumes)
+  - [7. Resource Limits](#7-resource-limits)
+  - [8. Security](#8-security)
+  - [9. Health Checks](#9-health-checks)
+  - [10. Container Updates](#10-container-updates)
+  - [11. Batch Operations](#11-batch-operations)
+  - [12. Stack Deployment](#12-stack-deployment)
+  - [13. Resilience & Error Handling](#13-resilience--error-handling)
+  - [14. Advanced Patterns](#14-advanced-patterns)
+  - [15. Attach/STDIN & Console](#15-attachstdin--console)
+  - [16. Preset System](#16-preset-system)
+- [API Quick Reference](#api-quick-reference)
+  - [Orchestrator](#orchestrator)
+  - [Client & Container](#client--container)
+  - [Image](#image)
+  - [Logs & Metrics](#logs--metrics)
+  - [Events](#events)
+  - [Exec & Files](#exec--files-1)
+  - [Networking](#networking)
+  - [Volume](#volume)
+  - [Stack](#stack)
+  - [Attach & Console](#attach--console)
+  - [Presets](#presets)
+  - [Config & Validation](#config--validation)
+  - [Resilience](#resilience)
+- [Configuration Reference](#configuration-reference)
+  - [ContainerConfig](#containerconfig)
+  - [Defaults](#defaults)
+  - [Security Presets](#security-presets)
+  - [Orchestrator Options](#orchestrator-options)
+- [Error Handling Reference](#error-handling-reference)
+  - [Error Classes](#error-classes)
+  - [Transient vs. Permanent Errors](#transient-vs-permanent-errors)
+  - [Retry Behavior per Operation](#retry-behavior-per-operation)
+- [Troubleshooting](#troubleshooting)
+- [Further Documentation](#further-documentation)
+- [License](#license)
+- [Links](#links)
 
 ---
 
-## Voraussetzungen
+## Features
 
-| Voraussetzung | Version |
+- **Container Lifecycle Management** — Create, Start, Stop, Remove, Recreate with automatic rollback
+- **Real-Time Log Streaming** — stdout/stderr separation, follow mode, tail, time-range filtering
+- **Container Metrics** — CPU, Memory, Network I/O, Block I/O with continuous streaming
+- **Docker Event System** — Subscribe to typed events with filtering and auto-reconnect
+- **Command Execution** — Run commands in containers: simple exec, interactive TTY, script execution
+- **Attach/STDIN Streaming** — Low-level container attach with stdin/stdout/stderr, fire-and-forget commands
+- **Persistent Console** — Interactive container console with reconnect, output buffering, sendAndWait, and command queue
+- **Preset System** — Reusable container configurations with merge logic, graceful stop hooks, and ready-check integration
+- **Bidirectional File Transfer** — Copy files and buffers between host and container
+- **Network Management** — Custom bridge/overlay/macvlan networks, DNS aliases, fixed IPs
+- **Volume Management** — Named volumes, bind mounts, tmpfs with automatic creation
+- **Flexible Port Mapping** — String/number/object syntax, ranges, UDP, auto-assign with availability checks
+- **Resource Limits** — Memory (hard/soft), CPU (cores/shares), PID limits, Block I/O weights
+- **Security Profiles** — Presets (hardened/standard/permissive), capabilities, read-only FS, seccomp
+- **Health Checks** — HTTP, TCP, and exec-based checks with configurable intervals and timeouts
+- **Batch Operations** — Parallel deploy/destroy/update with concurrency control and partial-failure handling
+- **Resilience** — Retry with exponential backoff, circuit breaker, stream recovery, graceful shutdown
+- **Stack Deployment** — Multi-container stacks with dependency ordering and service scaling
+- **Fully Typed** — TypeScript-first with Zod schema validation, 200+ exported types
+
+---
+
+## Prerequisites
+
+| Requirement | Version |
 |---|---|
-| **Node.js** | ≥ 18 (empfohlen: 20) |
+| **Node.js** | ≥ 18 (recommended: 20) |
 | **Docker Engine** | ≥ 20.10 (API v1.41+) |
-| **Plattform** | Linux (primär unterstützt) |
+| **Platform** | Linux (primarily supported) |
 
-Docker-Socket-Zugriff (`/var/run/docker.sock`) muss verfügbar sein. Die Library erkennt den Standard-Socket automatisch.
+Docker socket access (`/var/run/docker.sock`) must be available. The library auto-detects the default socket.
 
-> **Sicherheitshinweis:** Zugriff auf den Docker-Socket ist funktional äquivalent zu Root-Rechten auf dem Host-System. Stellen Sie sicher, dass nur vertrauenswürdige Prozesse Zugriff erhalten.
+> **Security Notice:** Access to the Docker socket is functionally equivalent to root access on the host system. Ensure that only trusted processes are granted access.
 
 ---
 
@@ -63,46 +116,46 @@ yarn add @pruefertit/docker-orchestrator
 pnpm add @pruefertit/docker-orchestrator
 ```
 
-Die Library hat folgende Runtime-Dependencies:
-- `dockerode` — Docker Engine API Client
-- `eventemitter3` — Event Emitter
-- `tar-stream` — TAR Streaming für Datei-Transfer
-- `zod` — Schema-Validierung
+The library has the following runtime dependencies:
+- `dockerode` — Docker Engine API client
+- `eventemitter3` — Event emitter
+- `tar-stream` — TAR streaming for file transfer
+- `zod` — Schema validation
 
 ---
 
-## Quick-Start
+## Quick Start
 
 ```typescript
 import { createClient, createOrchestrator } from "@pruefertit/docker-orchestrator";
 
-// 1. Docker-Client erstellen (erkennt Socket automatisch)
+// 1. Create a Docker client (auto-detects socket)
 const { docker } = await createClient();
 
-// 2. Orchestrator initialisieren
+// 2. Initialize the orchestrator
 const orch = createOrchestrator(docker);
 
-// 3. Container deployen
+// 3. Deploy a container
 const result = await orch.deploy({
   image: "nginx",
   name: "my-webserver",
   portMappings: ["8080:80"],
 });
 
-console.log(`Container ${result.name} läuft (${result.containerId})`);
+console.log(`Container ${result.name} is running (${result.containerId})`);
 console.log(`Ports:`, result.ports);
 
-// 4. Container zerstören
+// 4. Destroy the container
 await orch.destroy(result.containerId);
 ```
 
 ---
 
-## Verwendungsbeispiele
+## Usage Examples
 
-### 6.1 Container-Lifecycle
+### 1. Container Lifecycle
 
-#### Container erstellen und starten
+#### Create and start a container
 
 ```typescript
 import { createClient, createOrchestrator } from "@pruefertit/docker-orchestrator";
@@ -118,27 +171,27 @@ const result = await orch.deploy({
   portMappings: ["8080:80"],
 });
 
-console.log(`Status: ${result.status}`); // "running" oder "healthy"
+console.log(`Status: ${result.status}`); // "running" or "healthy"
 ```
 
-#### Container stoppen mit Timeout
+#### Stop a container with timeout
 
 ```typescript
-// Graceful stop mit 30 Sekunden Timeout
+// Graceful stop with 30-second timeout
 await orch.destroy(containerId, { timeout: 30 });
 ```
 
-#### Container löschen (normal und force)
+#### Remove a container (normal and force)
 
 ```typescript
-// Normal: Graceful stop, dann remove
+// Normal: graceful stop, then remove
 await orch.destroy(containerId);
 
-// Force: Sofortiges Kill + Remove + Volumes löschen
+// Force: immediate kill + remove + delete volumes
 await orch.destroy(containerId, { force: true, removeVolumes: true });
 ```
 
-#### Container-Status inspizieren
+#### Inspect container state
 
 ```typescript
 import { inspectContainer } from "@pruefertit/docker-orchestrator";
@@ -149,15 +202,15 @@ console.log(`Image: ${info.image}`);
 console.log(`Created: ${info.created}`);
 ```
 
-#### Alle laufenden Container auflisten
+#### List all running containers
 
 ```typescript
 import { listContainers } from "@pruefertit/docker-orchestrator";
 
-// Nur laufende Container
+// Running containers only
 const running = await listContainers(docker);
 
-// Alle Container (inkl. gestoppte)
+// All containers (including stopped)
 const all = await listContainers(docker, { all: true });
 
 for (const c of all) {
@@ -167,15 +220,15 @@ for (const c of all) {
 
 ---
 
-### 6.2 Konfiguration
+### 2. Configuration
 
-#### Minimale Config (nur Image)
+#### Minimal config (image only)
 
 ```typescript
 await orch.deploy({ image: "alpine" });
 ```
 
-#### Env-Vars setzen
+#### Set environment variables
 
 ```typescript
 await orch.deploy({
@@ -189,17 +242,17 @@ await orch.deploy({
 });
 ```
 
-#### Port-Mapping (alle Varianten)
+#### Port mapping (all variants)
 
 ```typescript
 await orch.deploy({
   image: "nginx",
   portMappings: [
-    8080,                        // Container + Host Port gleich: 0.0.0.0:8080:8080/tcp
+    8080,                        // Same host and container port: 0.0.0.0:8080:8080/tcp
     "8080:80",                   // Host:Container
-    "127.0.0.1:8080:80",        // Mit Interface-Binding
-    "8080:80/udp",               // UDP-Protokoll
-    {                            // Objekt-Syntax
+    "127.0.0.1:8080:80",        // With interface binding
+    "8080:80/udp",               // UDP protocol
+    {                            // Object syntax
       host: 9090,
       container: 80,
       protocol: "tcp",
@@ -209,25 +262,25 @@ await orch.deploy({
 });
 ```
 
-Port-Verfügbarkeit wird automatisch geprüft:
+Port availability is automatically checked:
 
 ```typescript
 import { checkPortAvailable } from "@pruefertit/docker-orchestrator";
 
 const available = await checkPortAvailable(8080);
-console.log(`Port 8080 verfügbar: ${available}`);
+console.log(`Port 8080 available: ${available}`);
 ```
 
-#### Volume-Mounts (alle Varianten)
+#### Volume mounts (all variants)
 
 ```typescript
 await orch.deploy({
   image: "postgres",
   mounts: [
-    "/host/data:/var/lib/postgresql/data",         // Bind-Mount
-    "pgdata:/var/lib/postgresql/data",             // Named Volume
-    "/host/config:/etc/config:ro",                 // Read-Only
-    {                                              // Objekt-Syntax
+    "/host/data:/var/lib/postgresql/data",         // Bind mount
+    "pgdata:/var/lib/postgresql/data",             // Named volume
+    "/host/config:/etc/config:ro",                 // Read-only
+    {                                              // Object syntax
       type: "bind",
       source: "/host/logs",
       target: "/var/log/app",
@@ -243,7 +296,7 @@ await orch.deploy({
 });
 ```
 
-#### Labels, Working-Directory und Entrypoint
+#### Labels, working directory, and entrypoint
 
 ```typescript
 await orch.deploy({
@@ -262,9 +315,9 @@ await orch.deploy({
 
 ---
 
-### 6.3 Monitoring
+### 3. Monitoring
 
-#### Logs abrufen (letzte N Zeilen)
+#### Fetch logs (last N lines)
 
 ```typescript
 import { tailLogs } from "@pruefertit/docker-orchestrator";
@@ -275,7 +328,7 @@ for (const entry of entries) {
 }
 ```
 
-#### Live-Log-Stream starten und beenden
+#### Start and stop a live log stream
 
 ```typescript
 import { streamLogs } from "@pruefertit/docker-orchestrator";
@@ -285,11 +338,11 @@ const logStream = await streamLogs(docker, containerId, (entry) => {
   console.log(`[${prefix}] ${entry.message}`);
 });
 
-// Stream nach 60 Sekunden beenden
+// Stop the stream after 60 seconds
 setTimeout(() => logStream.stop(), 60_000);
 ```
 
-#### Stdout vs. Stderr getrennt verarbeiten
+#### Handle stdout and stderr separately
 
 ```typescript
 import { getContainerLogs } from "@pruefertit/docker-orchestrator";
@@ -311,7 +364,7 @@ if ("on" in stream) {
 }
 ```
 
-#### Logs seit Zeitpunkt filtern
+#### Filter logs since a point in time
 
 ```typescript
 import { getContainerLogs } from "@pruefertit/docker-orchestrator";
@@ -323,37 +376,37 @@ const entries = await getContainerLogs(docker, containerId, {
 });
 ```
 
-#### Einmalige Metriken abfragen
+#### Fetch one-time metrics
 
 ```typescript
 import { getMetrics } from "@pruefertit/docker-orchestrator";
 
 const metrics = await getMetrics(docker, containerId);
 
-console.log(`CPU: ${metrics.cpu.percent.toFixed(2)}% (${metrics.cpu.cores} Kerne)`);
+console.log(`CPU: ${metrics.cpu.percent.toFixed(2)}% (${metrics.cpu.cores} cores)`);
 console.log(`RAM: ${(metrics.memory.usedBytes / 1024 / 1024).toFixed(1)} MB / ${(metrics.memory.limitBytes / 1024 / 1024).toFixed(1)} MB (${metrics.memory.percent.toFixed(1)}%)`);
 console.log(`Net RX: ${metrics.network.rxBytes} bytes, TX: ${metrics.network.txBytes} bytes`);
 console.log(`Disk Read: ${metrics.blockIO.readBytes} bytes, Write: ${metrics.blockIO.writeBytes} bytes`);
 ```
 
-#### Kontinuierlichen Metriken-Stream starten
+#### Start a continuous metrics stream
 
 ```typescript
 import { streamMetrics } from "@pruefertit/docker-orchestrator";
 
-const metricsStream = await streamMetrics(docker, containerId, 5000); // Alle 5 Sekunden
+const metricsStream = await streamMetrics(docker, containerId, 5000); // Every 5 seconds
 
 metricsStream.on("data", (metrics) => {
   console.log(`CPU: ${metrics.cpu.percent.toFixed(1)}% | RAM: ${metrics.memory.percent.toFixed(1)}%`);
 });
 
-metricsStream.on("error", (err) => console.error("Metriken-Fehler:", err));
+metricsStream.on("error", (err) => console.error("Metrics error:", err));
 
-// Später stoppen
+// Stop later
 metricsStream.stop();
 ```
 
-#### Docker-Events abonnieren und filtern
+#### Subscribe to and filter Docker events
 
 ```typescript
 import { subscribeEvents } from "@pruefertit/docker-orchestrator";
@@ -364,27 +417,27 @@ const subscription = await subscribeEvents(docker, {
 });
 
 subscription.on("container.start", (event) => {
-  console.log(`Container gestartet: ${event.actor.name}`);
+  console.log(`Container started: ${event.actor.name}`);
 });
 
 subscription.on("container.die", (event) => {
-  console.log(`Container gestorben: ${event.actor.name} (Exit: ${event.actor.attributes.exitCode})`);
+  console.log(`Container died: ${event.actor.name} (Exit: ${event.actor.attributes.exitCode})`);
 });
 
-// Alle Events
+// All events
 subscription.on("event", (event) => {
   console.log(`${event.type}.${event.action}: ${event.actor.id.substring(0, 12)}`);
 });
 
-// Abonnement beenden
+// Unsubscribe
 subscription.unsubscribe();
 ```
 
 ---
 
-### 6.4 Exec & Dateien
+### 4. Exec & Files
 
-#### Einfachen Command ausführen und Output lesen
+#### Run a simple command and read output
 
 ```typescript
 import { executeCommand } from "@pruefertit/docker-orchestrator";
@@ -392,22 +445,22 @@ import { executeCommand } from "@pruefertit/docker-orchestrator";
 const result = await executeCommand(docker, containerId, "ls -la /app");
 console.log("stdout:", result.stdout);
 console.log("stderr:", result.stderr);
-console.log("Exit-Code:", result.exitCode);
+console.log("Exit code:", result.exitCode);
 ```
 
-#### Exit-Code auswerten
+#### Evaluate exit code
 
 ```typescript
 const result = await executeCommand(docker, containerId, "test -f /app/config.json");
 
 if (result.exitCode === 0) {
-  console.log("Config-Datei existiert");
+  console.log("Config file exists");
 } else {
-  console.log("Config-Datei fehlt");
+  console.log("Config file missing");
 }
 ```
 
-#### Command mit Env-Vars und Working-Directory
+#### Command with env vars and working directory
 
 ```typescript
 const result = await executeCommand(docker, containerId, "node migrate.js", {
@@ -418,7 +471,7 @@ const result = await executeCommand(docker, containerId, "node migrate.js", {
 });
 ```
 
-#### Interaktive Shell-Session
+#### Interactive shell session
 
 ```typescript
 import { executeInteractive } from "@pruefertit/docker-orchestrator";
@@ -430,21 +483,21 @@ const handle = await executeInteractive(docker, containerId, "/bin/bash", {
 handle.stdout.on("data", (chunk) => process.stdout.write(chunk));
 process.stdin.pipe(handle.stdin);
 
-// Terminal-Größe anpassen
+// Resize terminal
 await handle.resize(120, 40);
 ```
 
-#### Script im Container ausführen
+#### Run a script inside a container
 
 ```typescript
 import { executeScript } from "@pruefertit/docker-orchestrator";
 
-// Lokales Script im Container ausführen
+// Run a local script inside the container
 const result = await executeScript(docker, containerId, "/local/scripts/setup.sh");
 console.log("Output:", result.stdout);
 ```
 
-#### Datei von Host in Container kopieren
+#### Copy a file from host to container
 
 ```typescript
 import { copyToContainer } from "@pruefertit/docker-orchestrator";
@@ -455,7 +508,7 @@ await copyToContainer(docker, containerId, {
 });
 ```
 
-#### Datei aus Container auf Host kopieren
+#### Copy a file from container to host
 
 ```typescript
 import { copyFromContainer } from "@pruefertit/docker-orchestrator";
@@ -466,7 +519,7 @@ await copyFromContainer(docker, containerId, {
 });
 ```
 
-#### Config-Datei als String in Container schreiben
+#### Write a config file as a string into a container
 
 ```typescript
 import { copyBufferToContainer } from "@pruefertit/docker-orchestrator";
@@ -486,9 +539,9 @@ await copyBufferToContainer(
 
 ---
 
-### 6.5 Netzwerk
+### 5. Networking
 
-#### Custom-Network erstellen
+#### Create a custom network
 
 ```typescript
 import { createNetwork, removeNetwork } from "@pruefertit/docker-orchestrator";
@@ -501,10 +554,10 @@ const network = await createNetwork(docker, {
   labels: { environment: "production" },
 });
 
-console.log(`Network erstellt: ${network.id}`);
+console.log(`Network created: ${network.id}`);
 ```
 
-#### Container in Network verbinden mit DNS-Alias
+#### Connect a container to a network with a DNS alias
 
 ```typescript
 import { connectContainer } from "@pruefertit/docker-orchestrator";
@@ -514,7 +567,7 @@ await connectContainer(docker, "app-network", containerId, {
 });
 ```
 
-#### Zwei Container kommunizieren über Network
+#### Two containers communicating over a network
 
 ```typescript
 const network = await createNetwork(docker, {
@@ -542,10 +595,10 @@ const app = await orch.deploy({
   env: { DATABASE_URL: "postgres://postgres:secret@database:5432/postgres" },
 });
 
-// 'app' kann 'db' über den DNS-Alias "database" erreichen
+// 'app' can reach 'db' via the DNS alias "database"
 ```
 
-#### Container mit fester IP
+#### Container with a fixed IP
 
 ```typescript
 await orch.deploy({
@@ -560,24 +613,24 @@ await orch.deploy({
 });
 ```
 
-#### Network aufräumen
+#### Clean up networks
 
 ```typescript
 import { pruneNetworks, disconnectContainer, removeNetwork } from "@pruefertit/docker-orchestrator";
 
-// Einzelnes Network entfernen (Container müssen vorher disconnected werden)
+// Remove a single network (containers must be disconnected first)
 await disconnectContainer(docker, "app-network", containerId);
 await removeNetwork(docker, "app-network");
 
-// Alle ungenutzten Networks aufräumen
+// Remove all unused networks
 const pruned = await pruneNetworks(docker);
 ```
 
 ---
 
-### 6.6 Volumes
+### 6. Volumes
 
-#### Named Volume erstellen
+#### Create a named volume
 
 ```typescript
 import { createVolume, inspectVolume } from "@pruefertit/docker-orchestrator";
@@ -590,7 +643,7 @@ const volume = await createVolume(docker, {
 console.log(`Volume: ${volume.name}, Mountpoint: ${volume.mountpoint}`);
 ```
 
-#### Volume an Container mounten
+#### Mount a volume into a container
 
 ```typescript
 await orch.deploy({
@@ -600,10 +653,10 @@ await orch.deploy({
 });
 ```
 
-#### Daten-Persistenz über Container-Neustarts
+#### Data persistence across container restarts
 
 ```typescript
-// Container deployen mit Volume
+// Deploy container with volume
 const result = await orch.deploy({
   image: "postgres",
   name: "db-persistent",
@@ -611,10 +664,10 @@ const result = await orch.deploy({
   env: { POSTGRES_PASSWORD: "secret" },
 });
 
-// Container zerstören (Volume bleibt erhalten)
+// Destroy the container (volume is preserved)
 await orch.destroy(result.containerId);
 
-// Neuen Container mit gleichem Volume starten — Daten sind noch da
+// Start a new container with the same volume — data is still there
 await orch.deploy({
   image: "postgres",
   name: "db-persistent-new",
@@ -623,7 +676,7 @@ await orch.deploy({
 });
 ```
 
-#### Volumes auflisten und aufräumen
+#### List and prune volumes
 
 ```typescript
 import { listVolumes, pruneVolumes } from "@pruefertit/docker-orchestrator";
@@ -633,16 +686,16 @@ for (const vol of volumes) {
   console.log(`${vol.name} (Driver: ${vol.driver})`);
 }
 
-// Ungenutzte Volumes entfernen
+// Remove unused volumes
 const pruned = await pruneVolumes(docker);
-console.log(`Entfernt: ${pruned.volumesDeleted.length} Volumes, ${pruned.spaceReclaimed} Bytes frei`);
+console.log(`Removed: ${pruned.volumesDeleted.length} volumes, ${pruned.spaceReclaimed} bytes freed`);
 ```
 
 ---
 
-### 6.7 Resource-Limits
+### 7. Resource Limits
 
-#### Memory-Limit setzen (Hard + Soft)
+#### Set memory limits (hard + soft)
 
 ```typescript
 await orch.deploy({
@@ -651,16 +704,16 @@ await orch.deploy({
   name: "app-limited",
   resources: {
     memory: {
-      limit: "512m",         // Hard-Limit: 512 MB
-      reservation: "256m",   // Soft-Limit: 256 MB
-      swap: "1g",            // Swap-Limit: 1 GB
-      swappiness: 60,        // Swap-Neigung (0-100)
+      limit: "512m",         // Hard limit: 512 MB
+      reservation: "256m",   // Soft limit: 256 MB
+      swap: "1g",            // Swap limit: 1 GB
+      swappiness: 60,        // Swap tendency (0-100)
     },
   },
 });
 ```
 
-#### CPU-Limit setzen
+#### Set CPU limits
 
 ```typescript
 await orch.deploy({
@@ -668,15 +721,15 @@ await orch.deploy({
   name: "worker",
   resources: {
     cpu: {
-      nanoCpus: "1.5",      // 1.5 CPU-Kerne
-      shares: 512,           // Relative Gewichtung (Standard: 1024)
-      cpusetCpus: "0,1",    // Nur Kerne 0 und 1 nutzen
+      nanoCpus: "1.5",      // 1.5 CPU cores
+      shares: 512,           // Relative weight (default: 1024)
+      cpusetCpus: "0,1",    // Use only cores 0 and 1
     },
   },
 });
 ```
 
-#### PID-Limit setzen
+#### Set PID limit
 
 ```typescript
 await orch.deploy({
@@ -684,13 +737,13 @@ await orch.deploy({
   name: "web-safe",
   resources: {
     pids: {
-      limit: 200,            // Max. 200 Prozesse (Fork-Bomb-Schutz)
+      limit: 200,            // Max 200 processes (fork bomb protection)
     },
   },
 });
 ```
 
-#### Limits mit Metriken überwachen
+#### Monitor limits with metrics
 
 ```typescript
 import { getMetrics } from "@pruefertit/docker-orchestrator";
@@ -699,32 +752,32 @@ const metrics = await getMetrics(docker, containerId);
 const memPercent = metrics.memory.percent;
 
 if (memPercent > 80) {
-  console.warn(`Container nutzt ${memPercent.toFixed(1)}% des Memory-Limits!`);
+  console.warn(`Container is using ${memPercent.toFixed(1)}% of its memory limit!`);
 }
 ```
 
 ---
 
-### 6.8 Security
+### 8. Security
 
-#### Security-Preset `hardened` verwenden
+#### Use the `hardened` security preset
 
 ```typescript
 await orch.deploy({
   image: "nginx",
   name: "secure-web",
   securityProfile: "hardened",
-  // Setzt automatisch:
+  // Automatically sets:
   // - user: "1000:1000"
   // - readonlyRootfs: true
-  // - autoTmpfs: true (für /tmp, /var/run, etc.)
+  // - autoTmpfs: true (for /tmp, /var/run, etc.)
   // - capDrop: ["ALL"]
   // - noNewPrivileges: true
   // - seccomp: "default"
 });
 ```
 
-#### Non-Root-User setzen
+#### Set a non-root user
 
 ```typescript
 await orch.deploy({
@@ -737,7 +790,7 @@ await orch.deploy({
 });
 ```
 
-#### Capabilities droppen/adden
+#### Drop and add capabilities
 
 ```typescript
 await orch.deploy({
@@ -745,13 +798,13 @@ await orch.deploy({
   name: "web",
   security: {
     capDrop: ["ALL"],
-    capAdd: ["NET_BIND_SERVICE"],   // Nur Port < 1024 binden erlauben
+    capAdd: ["NET_BIND_SERVICE"],   // Allow binding to ports below 1024 only
     noNewPrivileges: true,
   },
 });
 ```
 
-#### Read-Only Root-Filesystem mit tmpfs für beschreibbare Pfade
+#### Read-only root filesystem with tmpfs for writable paths
 
 ```typescript
 await orch.deploy({
@@ -768,7 +821,7 @@ await orch.deploy({
 });
 ```
 
-#### Custom-Seccomp-Profil laden
+#### Load a custom seccomp profile
 
 ```typescript
 await orch.deploy({
@@ -781,26 +834,26 @@ await orch.deploy({
 });
 ```
 
-#### Preset mit einzelnen Overrides kombinieren
+#### Combine a preset with individual overrides
 
 ```typescript
-// Hardened-Preset als Basis, aber NET_BIND_SERVICE erlauben
+// Use the hardened preset as a base, but allow NET_BIND_SERVICE
 await orch.deploy({
   image: "nginx",
   name: "hardened-web",
   securityProfile: "hardened",
   security: {
     capAdd: ["NET_BIND_SERVICE"],
-    user: "nginx:nginx",           // Statt 1000:1000
+    user: "nginx:nginx",           // Override 1000:1000
   },
 });
 ```
 
 ---
 
-### 6.9 Health-Checks
+### 9. Health Checks
 
-#### HTTP-Health-Check
+#### HTTP health check
 
 ```typescript
 await orch.deploy({
@@ -814,15 +867,15 @@ await orch.deploy({
       port: 80,
       expectedStatus: 200,
     },
-    interval: 10,       // Alle 10 Sekunden prüfen
-    timeout: 5,          // 5 Sekunden Timeout pro Prüfung
-    retries: 3,          // 3 Fehlversuche = unhealthy
-    startPeriod: 15,     // 15 Sekunden Wartezeit nach Start
+    interval: 10,       // Check every 10 seconds
+    timeout: 5,          // 5-second timeout per check
+    retries: 3,          // 3 failures = unhealthy
+    startPeriod: 15,     // 15-second grace period after start
   },
 });
 ```
 
-#### TCP-Health-Check
+#### TCP health check
 
 ```typescript
 await orch.deploy({
@@ -838,7 +891,7 @@ await orch.deploy({
 });
 ```
 
-#### Exec-Health-Check
+#### Exec health check
 
 ```typescript
 await orch.deploy({
@@ -854,7 +907,7 @@ await orch.deploy({
 });
 ```
 
-#### Auf Healthy-Status warten nach Deploy
+#### Wait for healthy status after deploy
 
 ```typescript
 import { waitForHealthy } from "@pruefertit/docker-orchestrator";
@@ -869,13 +922,13 @@ const hcResult = await waitForHealthy(docker, containerId, {
 });
 
 if (hcResult.status === "healthy") {
-  console.log(`Container healthy nach ${hcResult.checks} Checks (${hcResult.elapsed}ms)`);
+  console.log(`Container healthy after ${hcResult.checks} checks (${hcResult.elapsed}ms)`);
 } else {
-  console.error(`Health-Check fehlgeschlagen: ${hcResult.lastError}`);
+  console.error(`Health check failed: ${hcResult.lastError}`);
 }
 ```
 
-#### Timeout-Handling bei Health-Check-Failure
+#### Timeout handling on health check failure
 
 ```typescript
 try {
@@ -892,43 +945,43 @@ try {
   });
 } catch (err) {
   if (err instanceof DeploymentFailedError && err.step === "healthcheck") {
-    console.error("Container hat Health-Check nicht bestanden — wurde automatisch entfernt");
+    console.error("Container failed health check — was automatically removed");
   }
 }
 ```
 
 ---
 
-### 6.10 Container-Updates
+### 10. Container Updates
 
-#### Container mit neuer Config updaten (Env-Var-Änderung)
+#### Update a container with a new config (env var change)
 
 ```typescript
 const updateResult = await orch.update(containerId, {
   env: { LOG_LEVEL: "debug", FEATURE_FLAG: "true" },
 });
 
-console.log(`Änderungen: ${updateResult.changes.length}`);
-console.log(`Neustart nötig: ${updateResult.restarted}`);
+console.log(`Changes: ${updateResult.changes.length}`);
+console.log(`Restart required: ${updateResult.restarted}`);
 for (const change of updateResult.changes) {
   console.log(`  ${change.field}: ${JSON.stringify(change.oldValue)} → ${JSON.stringify(change.newValue)}`);
 }
 ```
 
-#### Image-Update mit Recreation
+#### Image update with recreation
 
 ```typescript
-// Image-Änderung erfordert automatisch Container-Neustart
+// Image changes automatically require a container restart
 const updateResult = await orch.update(containerId, {
   image: "nginx",
   tag: "1.27-alpine",
 });
 
-console.log(`Neuer Container: ${updateResult.containerId}`);
-console.log(`Neugestartet: ${updateResult.restarted}`); // true
+console.log(`New container: ${updateResult.containerId}`);
+console.log(`Restarted: ${updateResult.restarted}`); // true
 ```
 
-#### Config-Diff anzeigen vor Update
+#### Show config diff before updating
 
 ```typescript
 import { diffConfigs } from "@pruefertit/docker-orchestrator";
@@ -944,9 +997,9 @@ for (const change of changes) {
 
 ---
 
-### 6.11 Batch-Operationen
+### 11. Batch Operations
 
-#### Mehrere Container parallel deployen
+#### Deploy multiple containers in parallel
 
 ```typescript
 const batchResult = await orch.deployMany(
@@ -961,22 +1014,22 @@ const batchResult = await orch.deployMany(
   },
 );
 
-console.log(`Erfolgreich: ${batchResult.succeeded}, Fehlgeschlagen: ${batchResult.failed}`);
+console.log(`Succeeded: ${batchResult.succeeded}, Failed: ${batchResult.failed}`);
 ```
 
-#### Teilerfolge auswerten
+#### Evaluate partial results
 
 ```typescript
 for (const item of batchResult.results) {
   if (item.status === "fulfilled") {
     console.log(`[${item.index}] Deployed: ${item.value.containerId}`);
   } else {
-    console.error(`[${item.index}] Fehler: ${item.reason.message}`);
+    console.error(`[${item.index}] Error: ${item.reason.message}`);
   }
 }
 ```
 
-#### Mehrere Container parallel zerstören
+#### Destroy multiple containers in parallel
 
 ```typescript
 const destroyResult = await orch.destroyMany(
@@ -985,18 +1038,18 @@ const destroyResult = await orch.destroyMany(
 );
 ```
 
-#### Concurrency-Limit konfigurieren
+#### Configure concurrency limit
 
 ```typescript
-// Maximal 2 Container gleichzeitig deployen (schont Ressourcen)
+// Deploy at most 2 containers simultaneously (conserves resources)
 const result = await orch.deployMany(configs, { concurrency: 2 });
 ```
 
 ---
 
-### 6.12 Stack-Deployment
+### 12. Stack Deployment
 
-#### Multi-Container-Stack definieren (App + DB)
+#### Define a multi-container stack (app + DB)
 
 ```typescript
 import { deployStack, destroyStack } from "@pruefertit/docker-orchestrator";
@@ -1020,7 +1073,7 @@ const stackResult = await deployStack(docker, {
     app: {
       image: "myapp",
       tag: "latest",
-      dependsOn: ["db"],          // DB startet zuerst
+      dependsOn: ["db"],          // DB starts first
       env: { DATABASE_URL: "postgres://postgres:secret@db:5432/app" },
       portMappings: ["3000:3000"],
       healthCheck: {
@@ -1043,11 +1096,11 @@ const stackResult = await deployStack(docker, {
 
 console.log(`Stack "${stackResult.stackName}" deployed`);
 for (const svc of stackResult.services) {
-  console.log(`  ${svc.serviceName}: ${svc.deployResults.length} Instanz(en)`);
+  console.log(`  ${svc.serviceName}: ${svc.deployResults.length} instance(s)`);
 }
 ```
 
-#### Stack zerstören
+#### Destroy a stack
 
 ```typescript
 await destroyStack(docker, "my-app");
@@ -1055,9 +1108,9 @@ await destroyStack(docker, "my-app");
 
 ---
 
-### 6.13 Resilienz & Error-Handling
+### 13. Resilience & Error Handling
 
-#### Fehler abfangen und Error-Typ prüfen
+#### Catch errors and check error type
 
 ```typescript
 import {
@@ -1076,17 +1129,17 @@ try {
     console.error(`Context:`, err.context);
 
     if (err instanceof PortAlreadyInUseError) {
-      console.error(`Port ${err.port} belegt. Vorschlag: ${err.suggestedPort}`);
+      console.error(`Port ${err.port} in use. Suggestion: ${err.suggestedPort}`);
     }
 
     if (isTransientError(err)) {
-      console.log("Transienter Fehler — Retry möglich");
+      console.log("Transient error — retry possible");
     }
   }
 }
 ```
 
-#### Retry-Policy anpassen
+#### Customize retry policy
 
 ```typescript
 const orch = createOrchestrator(docker, {
@@ -1097,7 +1150,7 @@ const orch = createOrchestrator(docker, {
 });
 ```
 
-Oder direkt mit der `retry`-Funktion:
+Or use the `retry` function directly:
 
 ```typescript
 import { retry } from "@pruefertit/docker-orchestrator";
@@ -1112,13 +1165,13 @@ const result = await retry(
     jitter: true,
     retryOn: (err) => isTransientError(err),
     onRetry: (attempt, err, nextDelay) => {
-      console.log(`Retry ${attempt}, nächster Versuch in ${nextDelay}ms`);
+      console.log(`Retry ${attempt}, next attempt in ${nextDelay}ms`);
     },
   },
 );
 ```
 
-#### Circuit-Breaker-Status abfragen
+#### Query circuit breaker status
 
 ```typescript
 const health = orch.health();
@@ -1127,7 +1180,7 @@ console.log(`Circuit: ${health.circuit}`);          // "closed" | "open" | "half
 console.log(`Pending Ops: ${health.pendingOperations}`);
 ```
 
-Standalone Circuit-Breaker:
+Standalone circuit breaker:
 
 ```typescript
 import { CircuitBreaker } from "@pruefertit/docker-orchestrator";
@@ -1138,13 +1191,13 @@ const breaker = new CircuitBreaker({
   halfOpenMaxAttempts: 1,
 });
 
-breaker.on("circuit.open", () => console.warn("Circuit geöffnet!"));
-breaker.on("circuit.closed", () => console.log("Circuit geschlossen"));
+breaker.on("circuit.open", () => console.warn("Circuit opened!"));
+breaker.on("circuit.closed", () => console.log("Circuit closed"));
 
 const result = await breaker.execute(() => fetch("http://service/api"));
 ```
 
-#### Daemon-Disconnect/Reconnect-Events behandeln
+#### Handle daemon disconnect/reconnect events
 
 ```typescript
 import { DaemonMonitor } from "@pruefertit/docker-orchestrator";
@@ -1155,57 +1208,57 @@ const monitor = new DaemonMonitor(docker, {
 });
 
 monitor.onDaemonDisconnect(() => {
-  console.error("Docker-Daemon nicht erreichbar!");
+  console.error("Docker daemon unreachable!");
 });
 
 monitor.onDaemonReconnect(() => {
-  console.log("Docker-Daemon wieder verbunden");
+  console.log("Docker daemon reconnected");
 });
 
 await monitor.start();
 
-// Aufräumen
+// Clean up
 monitor.destroy();
 ```
 
-#### Graceful-Shutdown implementieren
+#### Implement graceful shutdown
 
 ```typescript
 import { ShutdownManager } from "@pruefertit/docker-orchestrator";
 
 const shutdown = new ShutdownManager({ timeout: 15_000 });
 
-// Cleanup-Callbacks registrieren
+// Register cleanup callbacks
 shutdown.register("stop-containers", async () => {
   await orch.destroyMany(containerIds);
 });
 
 shutdown.register("close-connections", () => {
-  // DB-Verbindungen schließen
+  // Close DB connections
 });
 
-// Signal-Handler installieren (SIGINT, SIGTERM)
+// Install signal handlers (SIGINT, SIGTERM)
 shutdown.installSignalHandlers();
 
-// Oder manuell auslösen
+// Or trigger manually
 await shutdown.shutdown();
 ```
 
-#### Orchestrator-Health prüfen
+#### Check orchestrator health
 
 ```typescript
 const status = orch.health();
 
 if (status.daemon === "disconnected") {
-  console.error("Docker-Daemon offline");
+  console.error("Docker daemon offline");
 }
 
 if (status.circuit === "open") {
-  console.warn("Circuit-Breaker offen — Operationen werden abgelehnt");
+  console.warn("Circuit breaker open — operations will be rejected");
 }
 ```
 
-#### Custom-Logger injizieren
+#### Inject a custom logger
 
 ```typescript
 import { createLogger, createOrchestrator } from "@pruefertit/docker-orchestrator";
@@ -1215,7 +1268,7 @@ const logger = createLogger({ level: "debug", json: true });
 const orch = createOrchestrator(docker, { logger });
 ```
 
-Oder eigenen Logger implementieren:
+Or implement your own logger:
 
 ```typescript
 import type { Logger } from "@pruefertit/docker-orchestrator";
@@ -1233,9 +1286,9 @@ const orch = createOrchestrator(docker, { logger: customLogger });
 
 ---
 
-### 6.14 Fortgeschrittene Patterns
+### 14. Advanced Patterns
 
-#### Container als kurzlebigen Job ausführen
+#### Run a container as a short-lived job
 
 ```typescript
 const job = await orch.deploy({
@@ -1246,19 +1299,19 @@ const job = await orch.deploy({
   restartPolicy: "no",
 });
 
-// Auf Beendigung warten
+// Wait for completion
 const container = docker.getContainer(job.containerId);
 await container.wait();
 
-// Output lesen
+// Read output
 const logs = await tailLogs(docker, job.containerId, 1000);
 console.log(logs.map((e) => e.message).join("\n"));
 
-// Aufräumen
+// Clean up
 await orch.destroy(job.containerId, { removeVolumes: true });
 ```
 
-#### Sidecar-Pattern: Haupt-Container + Log-Collector
+#### Sidecar pattern: main container + log collector
 
 ```typescript
 const network = await createNetwork(docker, { name: "sidecar-net", driver: "bridge" });
@@ -1278,10 +1331,10 @@ const logCollector = await orch.deploy({
 });
 ```
 
-#### Blue-Green-Deployment
+#### Blue-green deployment
 
 ```typescript
-// Neuen Container starten (Green)
+// Start the new container (green)
 const green = await orch.deploy({
   image: "myapp",
   tag: "v2.0.0",
@@ -1297,20 +1350,20 @@ const green = await orch.deploy({
 });
 
 if (green.status === "healthy") {
-  // Traffic umleiten (Load-Balancer-Config anpassen)
-  console.log("Green ist healthy — Traffic umleiten");
+  // Redirect traffic (update load balancer config)
+  console.log("Green is healthy — redirecting traffic");
 
-  // Alten Container entfernen (Blue)
+  // Remove the old container (blue)
   await orch.destroy(blueContainerId);
-  console.log("Blue entfernt — Deployment abgeschlossen");
+  console.log("Blue removed — deployment complete");
 } else {
-  // Rollback: Green entfernen
+  // Rollback: remove green
   await orch.destroy(green.containerId);
-  console.error("Green Health-Check fehlgeschlagen — Rollback");
+  console.error("Green health check failed — rolling back");
 }
 ```
 
-#### Periodic-Task: Container für Cron-ähnliche Jobs
+#### Periodic task: container for cron-like jobs
 
 ```typescript
 async function runPeriodicJob() {
@@ -1328,45 +1381,45 @@ async function runPeriodicJob() {
 
   if (StatusCode !== 0) {
     const logs = await tailLogs(docker, job.containerId, 50);
-    console.error(`Job fehlgeschlagen (Exit ${StatusCode}):`, logs.map((e) => e.message).join("\n"));
+    console.error(`Job failed (Exit ${StatusCode}):`, logs.map((e) => e.message).join("\n"));
   }
 
   await orch.destroy(job.containerId, { removeVolumes: true });
 }
 
-// Alle 60 Minuten ausführen
+// Run every 60 minutes
 setInterval(runPeriodicJob, 60 * 60 * 1000);
 ```
 
 ---
 
-### 6.15 Attach/STDIN & Console
+### 15. Attach/STDIN & Console
 
-#### Container mit interaktivem STDIN deployen
+#### Deploy a container with interactive STDIN
 
 ```typescript
 const result = await orch.deploy({
   image: "alpine",
   name: "interactive-shell",
   cmd: ["cat"],
-  interactive: true,  // Aktiviert OpenStdin + AttachStdin
+  interactive: true,  // Enables OpenStdin + AttachStdin
 });
 
-// Console ist automatisch verfügbar für interaktive Container
+// Console is automatically available for interactive containers
 const cons = result.console;
 ```
 
-#### Low-Level Attach an Container
+#### Low-level attach to a container
 
 ```typescript
 import { attachContainer } from "@pruefertit/docker-orchestrator";
 
 const { stream, demuxed, tty } = await attachContainer(docker, containerId);
 
-// Daten senden
+// Send data
 stream.write("hello\n");
 
-// Output empfangen (non-TTY: demuxed stdout/stderr)
+// Receive output (non-TTY: demuxed stdout/stderr)
 demuxed!.stdout.on("data", (chunk: Buffer) => {
   console.log("stdout:", chunk.toString());
 });
@@ -1375,93 +1428,93 @@ demuxed!.stderr.on("data", (chunk: Buffer) => {
   console.error("stderr:", chunk.toString());
 });
 
-// Stream schließen
+// Close stream
 stream.end();
 ```
 
-#### Fire-and-Forget-Command senden
+#### Send fire-and-forget commands
 
 ```typescript
 import { sendCommand, sendCommands } from "@pruefertit/docker-orchestrator";
 
-// Einzelnen Command senden (kein Output zurück)
+// Send a single command (no output returned)
 await sendCommand(docker, containerId, "start-process");
 
-// Mehrere Commands nacheinander senden
+// Send multiple commands sequentially
 await sendCommands(docker, containerId, [
   "config set maxmemory 256mb",
   "config set maxmemory-policy allkeys-lru",
   "save",
-], 100); // 100ms Pause zwischen Commands
+], 100); // 100ms pause between commands
 ```
 
-#### Auch über den Orchestrator
+#### Via the orchestrator
 
 ```typescript
-// Einzelner Command
+// Single command
 await orch.attach.send(containerId, "reload-config");
 
-// Mehrere Commands
+// Multiple commands
 await orch.attach.sendMany(containerId, ["cmd1", "cmd2"]);
 ```
 
-#### Persistent Console erstellen
+#### Create a persistent console
 
 ```typescript
 import { createConsole } from "@pruefertit/docker-orchestrator";
 
 const console = await createConsole(docker, containerId, {
-  reconnect: true,           // Auto-Reconnect bei Verbindungsverlust
-  reconnectMaxRetries: 10,   // Max. 10 Reconnect-Versuche
-  outputBufferSize: 1000,    // Letzte 1000 Zeilen buffern
-  queueCommands: false,      // Commands queuen wenn disconnected
+  reconnect: true,           // Auto-reconnect on connection loss
+  reconnectMaxRetries: 10,   // Max 10 reconnect attempts
+  outputBufferSize: 1000,    // Buffer last 1000 lines
+  queueCommands: false,      // Queue commands when disconnected
 });
 
-// Oder über den Orchestrator
+// Or via the orchestrator
 const console2 = await orch.attach.console(containerId);
 ```
 
-#### Command senden und auf Antwort warten
+#### Send a command and wait for a response
 
 ```typescript
 const result = await console.sendAndWait("status", {
-  matchOutput: "Server is running",  // Warten bis dieser Text erscheint
-  timeout: 5000,                     // Max. 5 Sekunden warten
+  matchOutput: "Server is running",  // Wait until this text appears
+  timeout: 5000,                     // Wait max 5 seconds
 });
 
 console.log(`Output: ${result.output}`);
-console.log(`Dauer: ${result.duration}ms`);
+console.log(`Duration: ${result.duration}ms`);
 ```
 
-#### Output-Buffer und Events
+#### Output buffer and events
 
 ```typescript
-// Alle Events abhören
+// Listen to all events
 console.on("output", (line) => {
   console.log(`[${line.stream}] ${line.message}`);
 });
 
-console.on("connected", () => console.log("Verbunden"));
-console.on("disconnected", () => console.log("Getrennt"));
+console.on("connected", () => console.log("Connected"));
+console.on("disconnected", () => console.log("Disconnected"));
 console.on("reconnecting", (attempt) => console.log(`Reconnect #${attempt}`));
 
-// Buffer abrufen
+// Retrieve buffer
 const buffer = console.getBuffer();
 for (const line of buffer) {
   console.log(`[${line.timestamp.toISOString()}] ${line.message}`);
 }
 
-// Buffer leeren
+// Clear buffer
 console.clearBuffer();
 
-// Uptime abfragen
-console.log(`Verbunden seit ${console.uptime}ms`);
+// Query uptime
+console.log(`Connected for ${console.uptime}ms`);
 
 // Disconnect
 console.disconnect();
 ```
 
-#### TTY-Modus aktivieren
+#### Enable TTY mode
 
 ```typescript
 await orch.deploy({
@@ -1469,15 +1522,15 @@ await orch.deploy({
   name: "tty-container",
   cmd: ["/bin/sh"],
   interactive: true,
-  tty: true,  // Aktiviert TTY (Pseudo-Terminal)
+  tty: true,  // Enable TTY (pseudo-terminal)
 });
 ```
 
 ---
 
-### 6.16 Preset-System
+### 16. Preset System
 
-#### Preset definieren und registrieren
+#### Define and register a preset
 
 ```typescript
 import { definePreset } from "@pruefertit/docker-orchestrator";
@@ -1496,13 +1549,13 @@ const minecraftPreset = definePreset({
     resources: { memory: { limit: "3g" } },
   },
   gracefulStop: {
-    command: "stop",         // Command für sauberes Herunterfahren
-    waitForExit: true,       // Warten bis Container beendet ist
-    timeout: 30000,          // Max. 30 Sekunden warten
+    command: "stop",         // Command for clean shutdown
+    waitForExit: true,       // Wait until container exits
+    timeout: 30000,          // Wait max 30 seconds
   },
   readyCheck: {
-    logMatch: /Done.*For help/,  // RegExp-Match auf Log-Output
-    timeout: 120000,             // Max. 2 Minuten auf Ready warten
+    logMatch: /Done.*For help/,  // RegExp match on log output
+    timeout: 120000,             // Wait max 2 minutes for ready
   },
   metadata: {
     description: "Minecraft Paper Server",
@@ -1510,11 +1563,11 @@ const minecraftPreset = definePreset({
   },
 });
 
-// Beim Orchestrator registrieren
+// Register with the orchestrator
 orch.presets.register(minecraftPreset);
 ```
 
-#### Mehrere Presets registrieren
+#### Register multiple presets
 
 ```typescript
 orch.presets.registerMany([
@@ -1523,25 +1576,25 @@ orch.presets.registerMany([
 ]);
 ```
 
-#### Container aus Preset deployen
+#### Deploy a container from a preset
 
 ```typescript
 const result = await orch.deploy({
   image: "itzg/minecraft-server",
   preset: "minecraft-server",
   name: "mc-survival",
-  env: { DIFFICULTY: "hard", MODE: "survival" },  // Wird mit Preset-Env gemerged
+  env: { DIFFICULTY: "hard", MODE: "survival" },  // Merged with preset env
 });
 
-// Preset-Env + User-Env werden zusammengeführt:
-// EULA=TRUE, TYPE=PAPER, MEMORY=2G (aus Preset)
-// DIFFICULTY=hard, MODE=survival (User-Override)
+// Preset env + user env are merged:
+// EULA=TRUE, TYPE=PAPER, MEMORY=2G (from preset)
+// DIFFICULTY=hard, MODE=survival (user overrides)
 ```
 
-#### Merge-Logik für Preset + User-Config
+#### Merge logic for preset + user config
 
 ```typescript
-// Preset definiert Basis-Config
+// Preset defines base config
 const preset = definePreset({
   name: "web-app",
   config: {
@@ -1555,85 +1608,85 @@ const preset = definePreset({
 
 orch.presets.register(preset);
 
-// User-Deploy merged intelligent:
+// User deploy merges intelligently:
 await orch.deploy({
   image: "node:20-alpine",
   preset: "web-app",
-  env: { NODE_ENV: "staging", DEBUG: "true" },      // Key-basiert: NODE_ENV wird überschrieben, DEBUG hinzugefügt
-  portMappings: ["8080:3000"],                       // User-Ports überschreiben Preset-Ports
-  mounts: ["app-data:/data"],                        // Additiv: beide Mounts aktiv
-  labels: { "app.version": "2.0" },                  // Key-basiert: app.type bleibt, app.version wird hinzugefügt
+  env: { NODE_ENV: "staging", DEBUG: "true" },      // Key-based: NODE_ENV is overridden, DEBUG is added
+  portMappings: ["8080:3000"],                       // User ports override preset ports
+  mounts: ["app-data:/data"],                        // Additive: both mounts are active
+  labels: { "app.version": "2.0" },                  // Key-based: app.type remains, app.version is added
 });
 ```
 
-#### Graceful Stop bei Destroy
+#### Graceful stop on destroy
 
 ```typescript
-// Beim Destroy wird automatisch der gracefulStop-Command gesendet
+// On destroy, the gracefulStop command is sent automatically
 await orch.destroy(result.containerId, { timeout: 60 });
-// → Sendet "stop" an den Minecraft-Server
-// → Wartet bis Container sauber beendet
-// → Fallback auf Force-Stop nach Timeout
+// → Sends "stop" to the Minecraft server
+// → Waits until container exits cleanly
+// → Falls back to force-stop after timeout
 ```
 
-#### Ready-Check bei Deploy
+#### Ready check on deploy
 
 ```typescript
-// Container wird erst als "running" gemeldet wenn Ready-Check bestanden
+// Container is not reported as "running" until the ready check passes
 const result = await orch.deploy({
   image: "itzg/minecraft-server",
   preset: "minecraft-server",
   name: "mc-creative",
 });
 
-// result.status === "running" erst wenn "Done.*For help" im Log erscheint
+// result.status === "running" only once "Done.*For help" appears in the log
 ```
 
-#### Presets verwalten
+#### Manage presets
 
 ```typescript
-// Alle registrierten Presets auflisten
+// List all registered presets
 const names = orch.presets.list();  // ["minecraft-server", "redis", "postgres"]
 
-// Preset abrufen
+// Get a preset
 const preset = orch.presets.get("minecraft-server");
 console.log(preset.config.image);  // "itzg/minecraft-server"
 
-// Preset existiert?
+// Check if preset exists
 orch.presets.has("minecraft-server");  // true
 
-// Preset entfernen
+// Remove a preset
 orch.presets.remove("minecraft-server");
 
-// Alle Presets entfernen
+// Remove all presets
 orch.presets.clear();
 ```
 
-#### Presets serialisieren und laden (JSON)
+#### Serialize and load presets (JSON)
 
 ```typescript
 import { serializePreset, deserializePreset } from "@pruefertit/docker-orchestrator";
 
-// Preset zu JSON serialisieren (inkl. RegExp-Support)
+// Serialize preset to JSON (with RegExp support)
 const json = serializePreset(minecraftPreset);
-// RegExp wird als "__REGEXP__Done.*For help__FLAGS__" gespeichert
+// RegExp is stored as "__REGEXP__Done.*For help__FLAGS__"
 
-// Preset aus JSON laden
+// Load preset from JSON
 const restored = deserializePreset(json);
 orch.presets.register(restored);
 ```
 
-#### Preset überschreiben
+#### Overwrite a preset
 
 ```typescript
-// Standardmäßig wirft register() einen Fehler bei Duplikaten
+// By default, register() throws an error on duplicates
 try {
   orch.presets.register(definePreset({ name: "redis", config: { image: "redis:7" } }));
 } catch (err) {
   // PresetAlreadyExistsError
 }
 
-// Mit overwrite-Option erlaubt
+// Allowed with overwrite option
 orch.presets.register(
   definePreset({ name: "redis", config: { image: "redis:7" } }),
   { overwrite: true },
@@ -1642,258 +1695,258 @@ orch.presets.register(
 
 ---
 
-## API-Kurzreferenz
+## API Quick Reference
 
 ### Orchestrator
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `createOrchestrator(docker, options?)` | Factory-Funktion | `Orchestrator` |
-| `orch.deploy(config, onProgress?)` | Container deployen | `Promise<DeployResult>` |
-| `orch.update(containerId, config, onProgress?)` | Container updaten | `Promise<UpdateResult>` |
-| `orch.destroy(containerId, options?)` | Container zerstören | `Promise<void>` |
-| `orch.deployMany(configs, options?)` | Batch-Deploy | `Promise<BatchResult<DeployResult>>` |
-| `orch.destroyMany(ids, options?)` | Batch-Destroy | `Promise<BatchResult<void>>` |
-| `orch.updateMany(updates, options?)` | Batch-Update | `Promise<BatchResult<UpdateResult>>` |
-| `orch.listManagedContainers()` | Verwaltete Container auflisten | `Promise<Array<{ containerId, name, status, deployedAt }>>` |
-| `orch.syncState()` | State mit Docker synchronisieren | `Promise<{ synced: number, orphans: string[] }>` |
-| `orch.health()` | Health-Status abfragen | `OrchestratorHealthStatus` |
-| `orch.shutdown()` | Graceful Shutdown | `Promise<void>` |
-| `orch.presets` | Zugriff auf PresetRegistry | `PresetRegistry` |
-| `orch.attach.send(id, cmd)` | Fire-and-Forget-Command senden | `Promise<void>` |
-| `orch.attach.sendMany(id, cmds, delay?)` | Mehrere Commands senden | `Promise<void>` |
-| `orch.attach.console(id, options?)` | Persistent Console erstellen | `Promise<ContainerConsole>` |
+| `createOrchestrator(docker, options?)` | Factory function | `Orchestrator` |
+| `orch.deploy(config, onProgress?)` | Deploy a container | `Promise<DeployResult>` |
+| `orch.update(containerId, config, onProgress?)` | Update a container | `Promise<UpdateResult>` |
+| `orch.destroy(containerId, options?)` | Destroy a container | `Promise<void>` |
+| `orch.deployMany(configs, options?)` | Batch deploy | `Promise<BatchResult<DeployResult>>` |
+| `orch.destroyMany(ids, options?)` | Batch destroy | `Promise<BatchResult<void>>` |
+| `orch.updateMany(updates, options?)` | Batch update | `Promise<BatchResult<UpdateResult>>` |
+| `orch.listManagedContainers()` | List managed containers | `Promise<Array<{ containerId, name, status, deployedAt }>>` |
+| `orch.syncState()` | Sync state with Docker | `Promise<{ synced: number, orphans: string[] }>` |
+| `orch.health()` | Query health status | `OrchestratorHealthStatus` |
+| `orch.shutdown()` | Graceful shutdown | `Promise<void>` |
+| `orch.presets` | Access preset registry | `PresetRegistry` |
+| `orch.attach.send(id, cmd)` | Send fire-and-forget command | `Promise<void>` |
+| `orch.attach.sendMany(id, cmds, delay?)` | Send multiple commands | `Promise<void>` |
+| `orch.attach.console(id, options?)` | Create persistent console | `Promise<ContainerConsole>` |
 
 ### Client & Container
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `createClient(options?)` | Docker-Client erstellen | `Promise<CreateClientResult>` |
-| `createContainer(docker, config)` | Container erstellen | `Promise<{ id }>` |
-| `startContainer(docker, id)` | Container starten | `Promise<void>` |
-| `stopContainer(docker, id, timeout?)` | Container stoppen | `Promise<void>` |
-| `removeContainer(docker, id, options?)` | Container entfernen | `Promise<void>` |
-| `inspectContainer(docker, id)` | Container inspizieren | `Promise<ContainerInspectResult>` |
-| `listContainers(docker, options?)` | Container auflisten | `Promise<ContainerInfo[]>` |
+| `createClient(options?)` | Create Docker client | `Promise<CreateClientResult>` |
+| `createContainer(docker, config)` | Create container | `Promise<{ id }>` |
+| `startContainer(docker, id)` | Start container | `Promise<void>` |
+| `stopContainer(docker, id, timeout?)` | Stop container | `Promise<void>` |
+| `removeContainer(docker, id, options?)` | Remove container | `Promise<void>` |
+| `inspectContainer(docker, id)` | Inspect container | `Promise<ContainerInspectResult>` |
+| `listContainers(docker, options?)` | List containers | `Promise<ContainerInfo[]>` |
 
 ### Image
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `imageExists(docker, imageRef)` | Prüfen ob Image vorhanden | `Promise<boolean>` |
-| `pullImage(docker, imageRef, onProgress?)` | Image herunterladen | `Promise<void>` |
-| `listImages(docker)` | Images auflisten | `Promise<ImageInfo[]>` |
-| `removeImage(docker, imageRef)` | Image entfernen | `Promise<void>` |
+| `imageExists(docker, imageRef)` | Check if image exists | `Promise<boolean>` |
+| `pullImage(docker, imageRef, onProgress?)` | Pull image | `Promise<void>` |
+| `listImages(docker)` | List images | `Promise<ImageInfo[]>` |
+| `removeImage(docker, imageRef)` | Remove image | `Promise<void>` |
 
 ### Logs & Metrics
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `getContainerLogs(docker, id, options?)` | Logs abrufen | `Promise<LogEntry[] \| LogStream>` |
-| `tailLogs(docker, id, lines)` | Letzte N Log-Zeilen | `Promise<LogEntry[]>` |
-| `streamLogs(docker, id, onEntry)` | Live-Log-Stream | `Promise<LogStream>` |
-| `getMetrics(docker, id)` | Einmalige Metriken | `Promise<ContainerMetrics>` |
-| `streamMetrics(docker, id, intervalMs?)` | Metriken-Stream | `Promise<MetricsStream>` |
+| `getContainerLogs(docker, id, options?)` | Fetch logs | `Promise<LogEntry[] \| LogStream>` |
+| `tailLogs(docker, id, lines)` | Last N log lines | `Promise<LogEntry[]>` |
+| `streamLogs(docker, id, onEntry)` | Live log stream | `Promise<LogStream>` |
+| `getMetrics(docker, id)` | One-time metrics | `Promise<ContainerMetrics>` |
+| `streamMetrics(docker, id, intervalMs?)` | Metrics stream | `Promise<MetricsStream>` |
 
 ### Events
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `subscribeEvents(docker, filter?)` | Docker-Events abonnieren | `Promise<EventSubscription>` |
+| `subscribeEvents(docker, filter?)` | Subscribe to Docker events | `Promise<EventSubscription>` |
 
-### Exec & Dateien
+### Exec & Files
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `executeCommand(docker, id, cmd, options?)` | Command ausführen | `Promise<ExecResult>` |
-| `executeInteractive(docker, id, cmd, options?)` | Interaktive Session | `Promise<InteractiveExecHandle>` |
-| `executeScript(docker, id, scriptPath, options?)` | Script ausführen | `Promise<ExecResult>` |
+| `executeCommand(docker, id, cmd, options?)` | Execute command | `Promise<ExecResult>` |
+| `executeInteractive(docker, id, cmd, options?)` | Interactive session | `Promise<InteractiveExecHandle>` |
+| `executeScript(docker, id, scriptPath, options?)` | Execute script | `Promise<ExecResult>` |
 | `copyToContainer(docker, id, options)` | Host → Container | `Promise<void>` |
 | `copyFromContainer(docker, id, options)` | Container → Host | `Promise<void>` |
 | `copyBufferToContainer(docker, id, destPath, buffer)` | Buffer → Container | `Promise<void>` |
-| `readFileFromContainer(docker, id, filePath)` | Datei aus Container lesen | `Promise<Buffer>` |
+| `readFileFromContainer(docker, id, filePath)` | Read file from container | `Promise<Buffer>` |
 
-### Netzwerk
+### Networking
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `createNetwork(docker, options)` | Netzwerk erstellen | `Promise<NetworkInfo>` |
-| `removeNetwork(docker, name)` | Netzwerk entfernen | `Promise<void>` |
-| `inspectNetwork(docker, name)` | Netzwerk inspizieren | `Promise<NetworkInfo>` |
-| `listNetworks(docker, filter?)` | Netzwerke auflisten | `Promise<NetworkInfo[]>` |
-| `connectContainer(docker, network, id, options?)` | Container verbinden | `Promise<void>` |
-| `disconnectContainer(docker, network, id)` | Container trennen | `Promise<void>` |
-| `pruneNetworks(docker)` | Ungenutzte entfernen | `Promise<string[]>` |
+| `createNetwork(docker, options)` | Create network | `Promise<NetworkInfo>` |
+| `removeNetwork(docker, name)` | Remove network | `Promise<void>` |
+| `inspectNetwork(docker, name)` | Inspect network | `Promise<NetworkInfo>` |
+| `listNetworks(docker, filter?)` | List networks | `Promise<NetworkInfo[]>` |
+| `connectContainer(docker, network, id, options?)` | Connect container | `Promise<void>` |
+| `disconnectContainer(docker, network, id)` | Disconnect container | `Promise<void>` |
+| `pruneNetworks(docker)` | Remove unused networks | `Promise<string[]>` |
 
 ### Volume
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `createVolume(docker, options)` | Volume erstellen | `Promise<VolumeInfo>` |
-| `removeVolume(docker, name, force?)` | Volume entfernen | `Promise<void>` |
-| `inspectVolume(docker, name)` | Volume inspizieren | `Promise<VolumeInfo>` |
-| `listVolumes(docker, filter?)` | Volumes auflisten | `Promise<VolumeInfo[]>` |
-| `pruneVolumes(docker)` | Ungenutzte entfernen | `Promise<PruneVolumesResult>` |
-| `volumeExists(docker, name)` | Existenz prüfen | `Promise<boolean>` |
+| `createVolume(docker, options)` | Create volume | `Promise<VolumeInfo>` |
+| `removeVolume(docker, name, force?)` | Remove volume | `Promise<void>` |
+| `inspectVolume(docker, name)` | Inspect volume | `Promise<VolumeInfo>` |
+| `listVolumes(docker, filter?)` | List volumes | `Promise<VolumeInfo[]>` |
+| `pruneVolumes(docker)` | Remove unused volumes | `Promise<PruneVolumesResult>` |
+| `volumeExists(docker, name)` | Check if volume exists | `Promise<boolean>` |
 
 ### Stack
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `deployStack(docker, config, onProgress?)` | Stack deployen | `Promise<StackDeployResult>` |
-| `destroyStack(docker, stackName)` | Stack zerstören | `Promise<void>` |
-| `resolveDependencyOrder(containers)` | Abhängigkeiten auflösen | `string[]` |
+| `deployStack(docker, config, onProgress?)` | Deploy stack | `Promise<StackDeployResult>` |
+| `destroyStack(docker, stackName)` | Destroy stack | `Promise<void>` |
+| `resolveDependencyOrder(containers)` | Resolve dependency order | `string[]` |
 
 ### Attach & Console
 
-| Methode / Klasse | Beschreibung | Return-Typ |
+| Method / Class | Description | Return Type |
 |---|---|---|
-| `attachContainer(docker, id, options?)` | Low-Level-Attach an Container | `Promise<AttachResult>` |
-| `sendCommand(docker, id, command, timeout?)` | Einzelnen Command senden | `Promise<void>` |
-| `sendCommands(docker, id, commands, delay?, timeout?)` | Mehrere Commands senden | `Promise<void>` |
-| `createConsole(docker, id, options?)` | Persistent Console erstellen | `Promise<ContainerConsole>` |
-| `ContainerConsole` | Interaktive Container-Console | Klasse |
-| `console.connect()` | Console verbinden | `Promise<void>` |
-| `console.disconnect()` | Console trennen | `void` |
-| `console.send(command)` | Command senden | `void` |
-| `console.sendAndWait(command, options?)` | Command senden und auf Antwort warten | `Promise<SendAndWaitResult>` |
-| `console.getBuffer()` | Output-Buffer abrufen | `ConsoleOutputLine[]` |
-| `console.clearBuffer()` | Output-Buffer leeren | `void` |
+| `attachContainer(docker, id, options?)` | Low-level container attach | `Promise<AttachResult>` |
+| `sendCommand(docker, id, command, timeout?)` | Send single command | `Promise<void>` |
+| `sendCommands(docker, id, commands, delay?, timeout?)` | Send multiple commands | `Promise<void>` |
+| `createConsole(docker, id, options?)` | Create persistent console | `Promise<ContainerConsole>` |
+| `ContainerConsole` | Interactive container console | Class |
+| `console.connect()` | Connect console | `Promise<void>` |
+| `console.disconnect()` | Disconnect console | `void` |
+| `console.send(command)` | Send command | `void` |
+| `console.sendAndWait(command, options?)` | Send command and wait for response | `Promise<SendAndWaitResult>` |
+| `console.getBuffer()` | Get output buffer | `ConsoleOutputLine[]` |
+| `console.clearBuffer()` | Clear output buffer | `void` |
 
 ### Presets
 
-| Methode / Klasse | Beschreibung | Return-Typ |
+| Method / Class | Description | Return Type |
 |---|---|---|
-| `definePreset(input)` | Preset mit Validierung definieren | `ContainerPreset` |
-| `serializePreset(preset)` | Preset zu JSON serialisieren | `string` |
-| `deserializePreset(json)` | Preset aus JSON laden | `ContainerPreset` |
-| `mergePresetConfig(presetConfig, userOverrides)` | Preset- und User-Config mergen | `Partial<ContainerConfig>` |
-| `PresetRegistry` | Registry für Container-Presets | Klasse |
-| `registry.register(preset, options?)` | Preset registrieren | `void` |
-| `registry.registerMany(presets, options?)` | Mehrere Presets registrieren | `void` |
-| `registry.get(name)` | Preset abrufen | `ContainerPreset` |
-| `registry.has(name)` | Prüfen ob Preset existiert | `boolean` |
-| `registry.list()` | Alle Preset-Namen auflisten | `string[]` |
-| `registry.remove(name)` | Preset entfernen | `boolean` |
-| `registry.clear()` | Alle Presets entfernen | `void` |
+| `definePreset(input)` | Define preset with validation | `ContainerPreset` |
+| `serializePreset(preset)` | Serialize preset to JSON | `string` |
+| `deserializePreset(json)` | Load preset from JSON | `ContainerPreset` |
+| `mergePresetConfig(presetConfig, userOverrides)` | Merge preset and user config | `Partial<ContainerConfig>` |
+| `PresetRegistry` | Registry for container presets | Class |
+| `registry.register(preset, options?)` | Register preset | `void` |
+| `registry.registerMany(presets, options?)` | Register multiple presets | `void` |
+| `registry.get(name)` | Get preset | `ContainerPreset` |
+| `registry.has(name)` | Check if preset exists | `boolean` |
+| `registry.list()` | List all preset names | `string[]` |
+| `registry.remove(name)` | Remove preset | `boolean` |
+| `registry.clear()` | Remove all presets | `void` |
 
 ### Config & Validation
 
-| Methode | Beschreibung | Return-Typ |
+| Method | Description | Return Type |
 |---|---|---|
-| `buildContainerConfig(config)` | ContainerConfig → Docker-Config | `BuildContainerConfigResult` |
-| `diffConfigs(oldConfig, newConfig)` | Config-Differenz berechnen | `ConfigDiff[]` |
-| `validateResourceLimits(config)` | Resource-Config validieren | `ConfigWarning[]` |
-| `validateSecurityConfig(config)` | Security-Config validieren | `ConfigWarning[]` |
-| `validateProductionConfig(resources, security)` | Produktions-Validierung | `ConfigWarning[]` |
+| `buildContainerConfig(config)` | ContainerConfig → Docker config | `BuildContainerConfigResult` |
+| `diffConfigs(oldConfig, newConfig)` | Calculate config diff | `ConfigDiff[]` |
+| `validateResourceLimits(config)` | Validate resource config | `ConfigWarning[]` |
+| `validateSecurityConfig(config)` | Validate security config | `ConfigWarning[]` |
+| `validateProductionConfig(resources, security)` | Production validation | `ConfigWarning[]` |
 
-### Resilienz
+### Resilience
 
-| Methode / Klasse | Beschreibung | Return-Typ |
+| Method / Class | Description | Return Type |
 |---|---|---|
-| `retry(fn, options)` | Funktion mit Retry ausführen | `Promise<T>` |
-| `CircuitBreaker` | Circuit-Breaker-Pattern | Klasse |
-| `withTimeout(promise, ms, message?)` | Timeout-Wrapper | `Promise<T>` |
-| `DaemonMonitor` | Docker-Daemon-Überwachung | Klasse |
-| `ShutdownManager` | Graceful-Shutdown-Manager | Klasse |
-| `ResilientStream` | Stream mit Auto-Reconnect | Klasse |
+| `retry(fn, options)` | Execute function with retry | `Promise<T>` |
+| `CircuitBreaker` | Circuit breaker pattern | Class |
+| `withTimeout(promise, ms, message?)` | Timeout wrapper | `Promise<T>` |
+| `DaemonMonitor` | Docker daemon monitoring | Class |
+| `ShutdownManager` | Graceful shutdown manager | Class |
+| `ResilientStream` | Stream with auto-reconnect | Class |
 
-Vollständige API-Dokumentation: [`docs/api.md`](docs/api.md)
+Full API documentation: [`docs/api.md`](docs/api.md)
 
 ---
 
-## Konfigurationsreferenz
+## Configuration Reference
 
 ### ContainerConfig
 
 ```typescript
 interface ContainerConfig {
-  // === Basis ===
-  image: string;                     // Docker-Image (erforderlich)
-  name?: string;                     // Container-Name
-  tag?: string;                      // Image-Tag (default: "latest")
-  cmd?: string[];                    // CMD Override
-  entrypoint?: string[];             // Entrypoint Override
-  env?: Record<string, string>;      // Umgebungsvariablen
-  labels?: Record<string, string>;   // Container-Labels
-  workingDir?: string;               // Arbeitsverzeichnis
+  // === Base ===
+  image: string;                     // Docker image (required)
+  name?: string;                     // Container name
+  tag?: string;                      // Image tag (default: "latest")
+  cmd?: string[];                    // CMD override
+  entrypoint?: string[];             // Entrypoint override
+  env?: Record<string, string>;      // Environment variables
+  labels?: Record<string, string>;   // Container labels
+  workingDir?: string;               // Working directory
 
-  // === Netzwerk ===
-  portMappings?: PortMappingInput[]; // Port-Mappings (String/Number/Objekt)
-  networks?: Record<string, {        // Custom-Netzwerke
+  // === Network ===
+  portMappings?: PortMappingInput[]; // Port mappings (string/number/object)
+  networks?: Record<string, {        // Custom networks
     aliases?: string[];
     ipv4Address?: string;
   }>;
-  hostname?: string;                 // Container-Hostname
-  domainName?: string;               // Domain-Name
-  dns?: string[];                    // DNS-Server
+  hostname?: string;                 // Container hostname
+  domainName?: string;               // Domain name
+  dns?: string[];                    // DNS servers
 
   // === Storage ===
-  mounts?: MountInput[];             // Mounts (String/Objekt)
-  tmpfs?: Record<string, string>;    // Tmpfs-Mounts
+  mounts?: MountInput[];             // Mounts (string/object)
+  tmpfs?: Record<string, string>;    // Tmpfs mounts
 
   // === Resources ===
-  resources?: ResourceConfig;        // CPU, Memory, I/O Limits
+  resources?: ResourceConfig;        // CPU, memory, I/O limits
 
   // === Security ===
-  security?: SecurityConfig;         // Detaillierte Security-Config
-  securityProfile?:                  // Security-Preset
+  security?: SecurityConfig;         // Detailed security config
+  securityProfile?:                  // Security preset
     | "hardened"
     | "standard"
     | "permissive";
 
   // === Interactive / TTY ===
-  interactive?: boolean;             // OpenStdin + AttachStdin aktivieren (default: false)
-  tty?: boolean;                     // Pseudo-Terminal aktivieren (default: false)
-  preset?: string;                   // Name eines registrierten Presets
+  interactive?: boolean;             // Enable OpenStdin + AttachStdin (default: false)
+  tty?: boolean;                     // Enable pseudo-terminal (default: false)
+  preset?: string;                   // Name of a registered preset
 
   // === Lifecycle ===
-  restartPolicy?:                    // Neustart-Policy
+  restartPolicy?:                    // Restart policy
     | "no"
     | "always"
-    | "unless-stopped"               // (Default)
+    | "unless-stopped"               // (default)
     | "on-failure";
-  stopTimeout?: number;              // Graceful-Stop Timeout in Sek. (default: 10)
-  healthCheck?: HealthCheckConfig;   // Health-Check-Konfiguration
+  stopTimeout?: number;              // Graceful stop timeout in seconds (default: 10)
+  healthCheck?: HealthCheckConfig;   // Health check configuration
 
   // === Meta ===
-  production?: boolean;              // Strikte Warnungen aktivieren
-  suppressWarnings?: string[];       // Bestimmte Warnungen unterdrücken
+  production?: boolean;              // Enable strict warnings
+  suppressWarnings?: string[];       // Suppress specific warnings
 }
 ```
 
 ### Defaults
 
-| Feld | Default | Beschreibung |
+| Field | Default | Description |
 |---|---|---|
-| `tag` | `"latest"` | Image-Tag |
-| `restartPolicy` | `"unless-stopped"` | Neustart-Verhalten |
-| `stopTimeout` | `10` | Sekunden bis Force-Kill |
-| `securityProfile` | `"standard"` | Security-Preset |
+| `tag` | `"latest"` | Image tag |
+| `restartPolicy` | `"unless-stopped"` | Restart behavior |
+| `stopTimeout` | `10` | Seconds until force-kill |
+| `securityProfile` | `"standard"` | Security preset |
 
-### Security-Presets
+### Security Presets
 
 | Preset | User | ReadOnly FS | Capabilities | No New Privileges | Seccomp |
 |---|---|---|---|---|---|
 | **`hardened`** | `1000:1000` | `true` | Drop ALL | `true` | `default` |
-| **`standard`** | — | — | Docker Default | `true` | `default` |
-| **`permissive`** | — | — | Docker Default | — | — |
+| **`standard`** | — | — | Docker default | `true` | `default` |
+| **`permissive`** | — | — | Docker default | — | — |
 
-### Orchestrator-Optionen
+### Orchestrator Options
 
 ```typescript
 interface OrchestratorOptions {
-  defaultNetwork?: string;           // Standard-Netzwerk für alle Container
-  defaultSecurityProfile?:           // Standard Security-Preset
+  defaultNetwork?: string;           // Default network for all containers
+  defaultSecurityProfile?:           // Default security preset
     | "hardened" | "standard" | "permissive";
-  defaultLabels?: Record<string, string>; // Labels für alle Container
-  retryPolicy?: Partial<RetryPolicies>;   // Retry-Konfiguration
-  circuitBreaker?:                   // Circuit-Breaker (false = deaktiviert)
+  defaultLabels?: Record<string, string>; // Labels applied to all containers
+  retryPolicy?: Partial<RetryPolicies>;   // Retry configuration
+  circuitBreaker?:                   // Circuit breaker (false = disabled)
     | Partial<CircuitBreakerOptions>
     | false;
-  timeouts?: Partial<TimeoutConfig>; // Timeout-Konfiguration
-  logger?: Logger;                   // Custom Logger
-  daemonMonitor?:                    // Daemon-Überwachung
+  timeouts?: Partial<TimeoutConfig>; // Timeout configuration
+  logger?: Logger;                   // Custom logger
+  daemonMonitor?:                    // Daemon monitoring
     | boolean
     | Partial<DaemonMonitorOptions>;
 }
@@ -1901,83 +1954,83 @@ interface OrchestratorOptions {
 
 ---
 
-## Error-Handling-Referenz
+## Error Handling Reference
 
-### Error-Klassen
+### Error Classes
 
-Alle Fehler erben von `DockerOrchestratorError` und enthalten `code`, `cause`, `context`, und `timestamp`.
+All errors extend `DockerOrchestratorError` and include `code`, `cause`, `context`, and `timestamp`.
 
-| Klasse | Code | Beschreibung |
+| Class | Code | Description |
 |---|---|---|
 | **Connection** | | |
-| `ConnectionError` | `CONNECTION_ERROR` | Verbindung zum Docker-Socket fehlgeschlagen |
-| `DockerDaemonNotRunningError` | `DOCKER_DAEMON_NOT_RUNNING` | Docker-Daemon nicht gestartet |
-| `DockerApiVersionError` | `DOCKER_API_VERSION_ERROR` | Inkompatible API-Version |
+| `ConnectionError` | `CONNECTION_ERROR` | Failed to connect to Docker socket |
+| `DockerDaemonNotRunningError` | `DOCKER_DAEMON_NOT_RUNNING` | Docker daemon not running |
+| `DockerApiVersionError` | `DOCKER_API_VERSION_ERROR` | Incompatible API version |
 | **Container** | | |
-| `ContainerNotFoundError` | `CONTAINER_NOT_FOUND` | Container existiert nicht |
-| `ContainerNotRunningError` | `CONTAINER_NOT_RUNNING` | Container ist gestoppt |
-| `ContainerAlreadyRunningError` | `CONTAINER_ALREADY_RUNNING` | Container läuft bereits |
-| `ContainerAlreadyStoppedError` | `CONTAINER_ALREADY_STOPPED` | Container bereits gestoppt |
-| `ContainerAlreadyExistsError` | `CONTAINER_ALREADY_EXISTS` | Name bereits vergeben |
+| `ContainerNotFoundError` | `CONTAINER_NOT_FOUND` | Container does not exist |
+| `ContainerNotRunningError` | `CONTAINER_NOT_RUNNING` | Container is stopped |
+| `ContainerAlreadyRunningError` | `CONTAINER_ALREADY_RUNNING` | Container is already running |
+| `ContainerAlreadyStoppedError` | `CONTAINER_ALREADY_STOPPED` | Container is already stopped |
+| `ContainerAlreadyExistsError` | `CONTAINER_ALREADY_EXISTS` | Name already taken |
 | **Image** | | |
-| `ImageNotFoundError` | `IMAGE_NOT_FOUND` | Image nicht gefunden |
-| `ImagePullError` | `IMAGE_PULL_ERROR` | Image-Download fehlgeschlagen |
+| `ImageNotFoundError` | `IMAGE_NOT_FOUND` | Image not found |
+| `ImagePullError` | `IMAGE_PULL_ERROR` | Image download failed |
 | **Resource** | | |
-| `PortAlreadyInUseError` | `PORT_ALREADY_IN_USE` | Port belegt |
-| `InsufficientResourcesError` | `INSUFFICIENT_RESOURCES` | Nicht genug Ressourcen |
-| `OOMKilledError` | `OOM_KILLED` | Out-of-Memory Kill |
-| `VolumeInUseError` | `VOLUME_IN_USE` | Volume wird noch genutzt |
+| `PortAlreadyInUseError` | `PORT_ALREADY_IN_USE` | Port in use |
+| `InsufficientResourcesError` | `INSUFFICIENT_RESOURCES` | Not enough resources |
+| `OOMKilledError` | `OOM_KILLED` | Out-of-memory kill |
+| `VolumeInUseError` | `VOLUME_IN_USE` | Volume still in use |
 | **Operation** | | |
-| `CommandFailedError` | `COMMAND_FAILED` | Exec-Command fehlgeschlagen |
-| `CommandTimeoutError` | `COMMAND_TIMEOUT` | Command-Timeout |
-| `HealthCheckTimeoutError` | `HEALTH_CHECK_TIMEOUT` | Health-Check-Timeout |
-| `DeploymentFailedError` | `DEPLOYMENT_FAILED` | Deployment fehlgeschlagen |
-| `RecreationFailedError` | `RECREATION_FAILED` | Container-Recreation fehlgeschlagen |
-| `CriticalRecreationError` | `CRITICAL_RECREATION_ERROR` | Recreation + Rollback fehlgeschlagen |
-| `UpdateFailedError` | `UPDATE_FAILED` | Update fehlgeschlagen |
-| `BatchOperationError` | `BATCH_OPERATION_ERROR` | Batch teilweise fehlgeschlagen |
-| `TimeoutError` | `TIMEOUT` | Allgemeiner Timeout |
-| `CircuitOpenError` | `CIRCUIT_OPEN` | Circuit-Breaker offen |
+| `CommandFailedError` | `COMMAND_FAILED` | Exec command failed |
+| `CommandTimeoutError` | `COMMAND_TIMEOUT` | Command timed out |
+| `HealthCheckTimeoutError` | `HEALTH_CHECK_TIMEOUT` | Health check timed out |
+| `DeploymentFailedError` | `DEPLOYMENT_FAILED` | Deployment failed |
+| `RecreationFailedError` | `RECREATION_FAILED` | Container recreation failed |
+| `CriticalRecreationError` | `CRITICAL_RECREATION_ERROR` | Recreation + rollback failed |
+| `UpdateFailedError` | `UPDATE_FAILED` | Update failed |
+| `BatchOperationError` | `BATCH_OPERATION_ERROR` | Batch partially failed |
+| `TimeoutError` | `TIMEOUT` | General timeout |
+| `CircuitOpenError` | `CIRCUIT_OPEN` | Circuit breaker is open |
 | **Config** | | |
-| `ValidationError` | `VALIDATION_ERROR` | Config-Validierung fehlgeschlagen |
-| `InvalidResourceConfigError` | `INVALID_RESOURCE_CONFIG` | Ungültige Resource-Config |
-| `InvalidSecurityConfigError` | `INVALID_SECURITY_CONFIG` | Ungültige Security-Config |
-| `InvalidMountError` | `INVALID_MOUNT` | Ungültige Mount-Spezifikation |
-| `InvalidSubnetError` | `INVALID_SUBNET` | IP nicht im Subnet |
+| `ValidationError` | `VALIDATION_ERROR` | Config validation failed |
+| `InvalidResourceConfigError` | `INVALID_RESOURCE_CONFIG` | Invalid resource config |
+| `InvalidSecurityConfigError` | `INVALID_SECURITY_CONFIG` | Invalid security config |
+| `InvalidMountError` | `INVALID_MOUNT` | Invalid mount specification |
+| `InvalidSubnetError` | `INVALID_SUBNET` | IP not in subnet |
 | **Network** | | |
-| `NetworkNotFoundError` | `NETWORK_NOT_FOUND` | Netzwerk nicht gefunden |
-| `NetworkAlreadyExistsError` | `NETWORK_ALREADY_EXISTS` | Netzwerk existiert bereits |
-| `ContainerStillConnectedError` | `CONTAINER_STILL_CONNECTED` | Container noch im Netzwerk |
+| `NetworkNotFoundError` | `NETWORK_NOT_FOUND` | Network not found |
+| `NetworkAlreadyExistsError` | `NETWORK_ALREADY_EXISTS` | Network already exists |
+| `ContainerStillConnectedError` | `CONTAINER_STILL_CONNECTED` | Container still in network |
 | **Volume** | | |
-| `VolumeNotFoundError` | `VOLUME_NOT_FOUND` | Volume nicht gefunden |
-| `VolumeAlreadyExistsError` | `VOLUME_ALREADY_EXISTS` | Volume existiert bereits |
+| `VolumeNotFoundError` | `VOLUME_NOT_FOUND` | Volume not found |
+| `VolumeAlreadyExistsError` | `VOLUME_ALREADY_EXISTS` | Volume already exists |
 | **Attach / Console** | | |
-| `StdinNotAvailableError` | `STDIN_NOT_AVAILABLE` | Container hat OpenStdin nicht aktiviert |
-| `ConsoleDisconnectedError` | `CONSOLE_DISCONNECTED` | Console ist nicht verbunden |
-| `ConsoleCommandTimeoutError` | `CONSOLE_COMMAND_TIMEOUT` | sendAndWait-Timeout überschritten |
-| `GracefulStopTimeoutError` | `GRACEFUL_STOP_TIMEOUT` | Graceful-Stop-Timeout überschritten |
+| `StdinNotAvailableError` | `STDIN_NOT_AVAILABLE` | Container does not have OpenStdin enabled |
+| `ConsoleDisconnectedError` | `CONSOLE_DISCONNECTED` | Console is not connected |
+| `ConsoleCommandTimeoutError` | `CONSOLE_COMMAND_TIMEOUT` | sendAndWait timeout exceeded |
+| `GracefulStopTimeoutError` | `GRACEFUL_STOP_TIMEOUT` | Graceful stop timeout exceeded |
 | **Preset** | | |
-| `PresetNotFoundError` | `PRESET_NOT_FOUND` | Preset nicht in Registry gefunden |
-| `PresetAlreadyExistsError` | `PRESET_ALREADY_EXISTS` | Preset existiert bereits (ohne overwrite) |
-| `PresetValidationError` | `PRESET_VALIDATION_ERROR` | Preset-Validierung fehlgeschlagen |
-| `ReadyCheckTimeoutError` | `READY_CHECK_TIMEOUT` | Ready-Check-Timeout überschritten |
+| `PresetNotFoundError` | `PRESET_NOT_FOUND` | Preset not found in registry |
+| `PresetAlreadyExistsError` | `PRESET_ALREADY_EXISTS` | Preset already exists (without overwrite) |
+| `PresetValidationError` | `PRESET_VALIDATION_ERROR` | Preset validation failed |
+| `ReadyCheckTimeoutError` | `READY_CHECK_TIMEOUT` | Ready check timeout exceeded |
 | **Other** | | |
-| `FileNotFoundError` | `FILE_NOT_FOUND` | Datei nicht gefunden |
-| `PermissionError` | `PERMISSION_DENIED` | Zugriff verweigert |
-| `SeccompProfileNotFoundError` | `SECCOMP_PROFILE_NOT_FOUND` | Seccomp-Profil fehlt |
-| `DependencyResolutionError` | `DEPENDENCY_RESOLUTION_ERROR` | Zirkuläre Abhängigkeit |
-| `DockerInternalError` | `DOCKER_INTERNAL_ERROR` | Interner Docker-Fehler |
+| `FileNotFoundError` | `FILE_NOT_FOUND` | File not found |
+| `PermissionError` | `PERMISSION_DENIED` | Access denied |
+| `SeccompProfileNotFoundError` | `SECCOMP_PROFILE_NOT_FOUND` | Seccomp profile missing |
+| `DependencyResolutionError` | `DEPENDENCY_RESOLUTION_ERROR` | Circular dependency |
+| `DockerInternalError` | `DOCKER_INTERNAL_ERROR` | Internal Docker error |
 
-### Transiente vs. Permanente Fehler
+### Transient vs. Permanent Errors
 
-**Transiente Fehler** (automatischer Retry möglich):
+**Transient errors** (automatic retry possible):
 - `CONNECTION_ERROR`, `DOCKER_DAEMON_NOT_RUNNING`, `TIMEOUT`, `COMMAND_TIMEOUT`, `DOCKER_INTERNAL_ERROR`
-- Netzwerk-Fehler: `ECONNREFUSED`, `ECONNRESET`, `ETIMEDOUT`, `socket hang up`
+- Network errors: `ECONNREFUSED`, `ECONNRESET`, `ETIMEDOUT`, `socket hang up`
 
-**Permanente Fehler** (kein Retry sinnvoll):
+**Permanent errors** (no retry useful):
 - `CONTAINER_NOT_FOUND`, `IMAGE_NOT_FOUND`, `VALIDATION_ERROR`, `PORT_ALREADY_IN_USE`, etc.
 
-Prüfung mit `isTransientError(err)`:
+Check with `isTransientError(err)`:
 
 ```typescript
 import { isTransientError } from "@pruefertit/docker-orchestrator";
@@ -1986,42 +2039,42 @@ try {
   await someOperation();
 } catch (err) {
   if (isTransientError(err)) {
-    // Retry-Logik
+    // Retry logic
   } else {
-    // Permanenter Fehler — nicht retrien
+    // Permanent error — do not retry
     throw err;
   }
 }
 ```
 
-### Retry-Verhalten pro Operation
+### Retry Behavior per Operation
 
-| Operation | Max Retries | Initial Delay | Beschreibung |
+| Operation | Max Retries | Initial Delay | Description |
 |---|---|---|---|
-| `imagePull` | 3 | 2000 ms | Image-Download |
-| `containerStart` | 2 | 1000 ms | Container-Start |
-| `healthCheck` | 0 | — | Kein Retry (eigene Logik) |
-| `exec` | 0 | — | Kein Retry |
-| `dockerPing` | 5 | 500 ms | Daemon-Connectivity |
+| `imagePull` | 3 | 2000 ms | Image download |
+| `containerStart` | 2 | 1000 ms | Container start |
+| `healthCheck` | 0 | — | No retry (own logic) |
+| `exec` | 0 | — | No retry |
+| `dockerPing` | 5 | 500 ms | Daemon connectivity |
 
 ---
 
 ## Troubleshooting
 
-### Docker-Socket permission denied
+### Docker socket permission denied
 
 ```
 Error: connect EACCES /var/run/docker.sock
 ```
 
-**Lösung:**
+**Solution:**
 ```bash
-# Aktuellen User zur docker-Gruppe hinzufügen
+# Add current user to the docker group
 sudo usermod -aG docker $USER
-# Neu anmelden oder:
+# Re-login or:
 newgrp docker
 
-# Alternative: Socket-Berechtigungen anpassen (weniger sicher)
+# Alternative: adjust socket permissions (less secure)
 sudo chmod 666 /var/run/docker.sock
 ```
 
@@ -2031,18 +2084,18 @@ sudo chmod 666 /var/run/docker.sock
 Error: DOCKER_DAEMON_NOT_RUNNING
 ```
 
-**Lösung:**
+**Solution:**
 ```bash
-# Docker-Service starten
+# Start Docker service
 sudo systemctl start docker
 
-# Status prüfen
+# Check status
 sudo systemctl status docker
 
-# Socket-Pfad prüfen
+# Check socket path
 ls -la /var/run/docker.sock
 
-# Custom-Socket-Pfad verwenden
+# Use a custom socket path
 const { docker } = await createClient({ socketPath: "/custom/path/docker.sock" });
 ```
 
@@ -2052,18 +2105,18 @@ const { docker } = await createClient({ socketPath: "/custom/path/docker.sock" }
 Error: PORT_ALREADY_IN_USE - Port 8080 is already in use
 ```
 
-**Lösung:**
+**Solution:**
 ```bash
-# Prozess auf Port finden
+# Find process on port
 lsof -i :8080
-# oder
+# or
 ss -tlnp | grep 8080
 
-# Prozess beenden oder anderen Port verwenden
+# Kill the process or use a different port
 ```
 
 ```typescript
-// Programmatisch: Port-Verfügbarkeit prüfen
+// Programmatically: check port availability
 import { checkPortAvailable } from "@pruefertit/docker-orchestrator";
 const free = await checkPortAvailable(8080);
 ```
@@ -2074,10 +2127,10 @@ const free = await checkPortAvailable(8080);
 Error: IMAGE_NOT_FOUND - Image not found: myapp:v1.0
 ```
 
-**Lösung:**
-- Image-Name und Tag prüfen: `docker pull myapp:v1.0`
-- Private Registry: Login erforderlich (`docker login`)
-- Netzwerk-Verbindung zur Registry prüfen
+**Solution:**
+- Check image name and tag: `docker pull myapp:v1.0`
+- Private registry: login required (`docker login`)
+- Check network connectivity to the registry
 
 ### OOM Killed
 
@@ -2085,20 +2138,20 @@ Error: IMAGE_NOT_FOUND - Image not found: myapp:v1.0
 Error: OOM_KILLED - Container was killed by OOM killer
 ```
 
-**Lösung:**
+**Solution:**
 ```typescript
-// Memory-Limit erhöhen
+// Increase memory limit
 await orch.deploy({
   image: "myapp",
   resources: {
     memory: {
-      limit: "1g",           // Von 512m auf 1g erhöhen
+      limit: "1g",           // Increase from 512m to 1g
       reservation: "512m",
     },
   },
 });
 
-// Memory-Verbrauch überwachen
+// Monitor memory usage
 const metrics = await getMetrics(docker, containerId);
 console.log(`RAM: ${metrics.memory.percent}%`);
 ```
@@ -2109,72 +2162,72 @@ console.log(`RAM: ${metrics.memory.percent}%`);
 Error: HEALTH_CHECK_TIMEOUT - Health check timed out
 ```
 
-**Lösung:**
+**Solution:**
 ```typescript
 await orch.deploy({
   image: "myapp",
   healthCheck: {
     type: "http",
     httpGet: { path: "/health", port: 8080 },
-    interval: 15,        // Längeres Interval
-    timeout: 10,         // Mehr Zeit pro Check
-    retries: 10,         // Mehr Versuche
-    startPeriod: 30,     // Längere Aufwärmzeit
+    interval: 15,        // Longer interval
+    timeout: 10,         // More time per check
+    retries: 10,         // More attempts
+    startPeriod: 30,     // Longer warm-up period
   },
 });
 ```
 
-Prüfen Sie auch:
-- Ist der Health-Endpoint erreichbar? (`curl http://localhost:PORT/health`)
-- Startet die Anwendung im Container korrekt? (Logs prüfen)
-- Stimmt der Port im Health-Check mit dem Container-Port überein?
+Also check:
+- Is the health endpoint reachable? (`curl http://localhost:PORT/health`)
+- Is the application starting correctly inside the container? (check logs)
+- Does the port in the health check match the container port?
 
-### Permission denied im Container
+### Permission denied in container
 
 ```
 Error: EACCES: permission denied
 ```
 
-**Lösung:**
+**Solution:**
 ```typescript
-// User/UID explizit setzen
+// Set user/UID explicitly
 await orch.deploy({
   image: "myapp",
   security: {
-    user: "1000:1000",    // UID:GID passend zu den Dateien
+    user: "1000:1000",    // UID:GID matching the files
   },
 });
 ```
 
 ```bash
-# Volume-Berechtigungen auf dem Host anpassen
+# Fix volume permissions on the host
 sudo chown -R 1000:1000 /host/data
 
-# Oder im Dockerfile: USER-Anweisung setzen
+# Or set USER instruction in your Dockerfile
 ```
 
 ---
 
-## Weiterführende Dokumentation
+## Further Documentation
 
-- [Vollständige API-Referenz](docs/api.md) — Alle Methoden, Parameter und Return-Typen im Detail
-- [Architektur-Dokumentation](docs/architecture.md) — Internes Design und Modulstruktur
-- [Security-Best-Practices](docs/security.md) — Hardening-Guide und Empfehlungen
-- [Performance-Tuning](docs/performance.md) — Optimierung für hohe Last und viele Container
-- [Migration-Guide](docs/migration.md) — Upgrade-Anleitung zwischen Versionen
-- [Contributing-Guidelines](CONTRIBUTING.md) — Beitragen zum Projekt
-- [Changelog](CHANGELOG.md) — Versionshistorie
+- [Full API Reference](docs/api.md) — All methods, parameters, and return types in detail
+- [Architecture Documentation](docs/architecture.md) — Internal design and module structure
+- [Security Best Practices](docs/security.md) — Hardening guide and recommendations
+- [Performance Tuning](docs/performance.md) — Optimization for high load and many containers
+- [Migration Guide](docs/migration.md) — Upgrade instructions between versions
+- [Contributing Guidelines](CONTRIBUTING.md) — How to contribute to the project
+- [Changelog](CHANGELOG.md) — Version history
 
 ---
 
-## Lizenz
+## License
 
-MIT License — siehe [LICENSE](LICENSE) für Details.
+MIT License — see [LICENSE](LICENSE) for details.
 
 ## Links
 
 - [Repository](https://github.com/jaameypr/docker-orchestrator)
-- [Issues & Bug-Reports](https://github.com/jaameypr/docker-orchestrator/issues)
+- [Issues & Bug Reports](https://github.com/jaameypr/docker-orchestrator/issues)
 - [NPM](https://www.npmjs.com/package/@pruefertit/docker-orchestrator)
 
 Maintained by the **pruefertit** Team.
