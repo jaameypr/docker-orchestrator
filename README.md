@@ -2230,4 +2230,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 - [Issues & Bug Reports](https://github.com/jaameypr/docker-orchestrator/issues)
 - [NPM](https://www.npmjs.com/package/@pruefertit/docker-orchestrator)
 
-Maintained by the **pruefertit** Team.
+Maintained by me.
